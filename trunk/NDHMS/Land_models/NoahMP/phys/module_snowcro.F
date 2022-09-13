@@ -1,3 +1,44 @@
+module tp_netcdf_write_mod
+
+contains
+
+  subroutine tp_write_data_to_netcdf_2d(filename, varname, data)
+
+    use netcdf
+
+    implicit none
+
+    character(len=*) :: filename
+    character(len=*) :: varname
+    real, dimension(:, :), intent(in) :: data
+
+    ! local variables
+    integer :: ncid, data_id, n1_dimid, n2_dimid, dimids(2), ier
+
+
+    ! create a new netcdf file
+    ier = nf90_create(filename, nf90_clobber, ncid)
+
+    ! create dimensions
+    ier = nf90_def_dim(ncid, 'n1', size(data, 1), n1_dimid)
+    ier = nf90_def_dim(ncid, 'n2', size(data, 2), n2_dimid)
+    dimids = (/ n1_dimid, n2_dimid /)
+
+    ! create a variable in the netcdf file
+    ier = nf90_def_var(ncid, varname, NF90_REAL, dimids, data_id)
+
+    ! write the variable
+    ier = nf90_enddef(ncid)
+    ier = nf90_put_var(ncid, data_id, data)
+
+
+    ! close the file
+    ier = nf90_close(ncid)
+
+  end subroutine tp_write_data_to_netcdf_2d
+
+end module tp_netcdf_write_mod
+!     ##########################################################################
 MODULE MODULE_SNOWCRO
 
 !SFX_LIC Copyright 1994-2014 CNRS, Meteo-France and Universite Paul Sabatier
@@ -3040,6 +3081,7 @@ USE MODD_SNOW_PAR, ONLY : XSNOWDMIN
 
 !
 USE MODE_SNOW3L
+USE tp_netcdf_write_mod !TAMARA
 !
 !USE PARKIND1  ,ONLY : JPRB  ! trude added
 !
@@ -3085,13 +3127,22 @@ INTEGER :: INLVLS     ! maximum snow layers number
 !
 INLVLS = SIZE(PSNOWDZ,2)
 !
+!TAMARA TEST
+DO JJ=1,SIZE(PSNOWDZ,1)
+  DO JST=1,6
+    PSNOWRHO(JJ,JST) = 700.0
+    PSNOWTEMP(JJ,JST) = 273.16
+    PSNOWLIQ(JJ,JST) = 0.05
+  ENDDO
+ENDDO
+!TAMARA TEST
 DO JJ=1,SIZE(PSNOWDZ,1)
   DO JST=1,KNLVLS_USE(JJ)
     ZSNOWRHO (JJ,JST) = PSNOWRHO(JJ,JST)
     ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST)
     ZWHOLDMAX(JJ,JST) = SNOWCROHOLD( PSNOWRHO(JJ,JST),PSNOWLIQ(JJ,JST),PSNOWDZ(JJ,JST) )
 ! trude test with not allowing liquid if psnowrho >  XRHOTHRESHOLD_ICE  (i.e. no liquid in ice)
-!      IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE)  ZWHOLDMAX (JJ,JST)=0
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0
 ! end trude test
 
   ENDDO
@@ -3148,6 +3199,12 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ZSNOWLIQ(JJ,JST) = ZSNOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST)
     !
+    ! If ice, all liq water in layer runsoff and zsnowliq->0, zflowliq->0 
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST)
+      ZFLOWLIQ(JJ,JST) = 0.
+    ENDIF !TAMARA
+    !
     ! 5. Density is adjusted to conserve the mass
     !    --------------------------------------------------------------
     ZNUMER = ( ZSNOWRHO(JJ,JST) * PSNOWDZ(JJ,JST) - ( ZFLOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST-1) ) * XRHOLW )
@@ -3175,6 +3232,10 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
   PTHRUFAL(JJ)  = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,KNLVLS_USE(JJ)) * XRHOLW / PTSTEP
  !
 ENDDO ! loop JJ grid points
+CALL tp_write_data_to_netcdf_2d('ZFLOWLIQ.nc', 'ZFLOWLIQ', ZFLOWLIQ) !TAMARA
+CALL tp_write_data_to_netcdf_2d('ZSNOWTEMP.nc', 'ZSNOWTEMP', ZSNOWTEMP) !TAMARA
+CALL tp_write_data_to_netcdf_2d('ZSNOWRHO.nc', 'ZSNOWRHO', ZSNOWRHO) !TAMARA
+CALL tp_write_data_to_netcdf_2d('ZSNOWLIQ.nc', 'ZSNOWLIQ', ZSNOWLIQ) !TAMARA
 !
 !IF (LHOOK) CALL DR_HOOK('SNOWCROREFRZ',1,ZHOOK_HANDLE)
 !
