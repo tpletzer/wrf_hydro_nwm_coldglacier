@@ -992,7 +992,7 @@ CONTAINS
                   GLACR = 1
              CALL NOAHMP_OPTIONS_GLACIER(IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC, IOPT_GLA )
 
-             TBOT = MIN(TBOT,263.15)                      ! set deep temp to at most -10C
+             TBOT = MIN(TBOT,255.15)                      ! set deep temp to at most -18C
              CALL NOAHMP_GLACIER(I,       J,    COSZ,   NSNOW,   NSOIL,      DT, & ! IN : Time/Space/Model-related
                               T_ML,    P_ML,    U_ML,    V_ML,    Q_ML,    SWDN, & ! IN : Forcing
                               PRCP,    LWDN,    TBOT,    Z_ML, FICEOLD,   ZSOIL, & ! IN : Forcing
@@ -1013,11 +1013,11 @@ CONTAINS
           ICE = -1               ! Land-ice point
           GLACR= 1
           CALL NOAHMP_OPTIONS_GLACIER(IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC, IOPT_GLA )
-          TBOT = MIN(TBOT,263.15) ! set deep temp to at most -10C
+          TBOT = MIN(TBOT,255.15) ! set deep temp to at most -18C !TAMARA
                                   ! send snow info from crocus to Noahmp_glacier to calc 2m temps etc
                                   ! move NOAHMP_GLACIER to after CROCUS
                                   ! for temperatre glacier, set top soil temp to 272
-          ZP_TG(1) = 272.0
+          ZP_TG(1) = 255.15 !TAMARA
 
           IF (ZP_SNOWDZ(1,1) .eq. 0.0 .and. ZP_SRSNOW(1) .eq. 0.0) THEN
           ELSE
@@ -1118,7 +1118,7 @@ CONTAINS
           ICE = -1
           GLACR= 1
           CALL NOAHMP_OPTIONS_GLACIER(IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC, IOPT_GLA )
-          TBOT = MIN(TBOT,263.15) ! set deep temp to at most -10C
+          TBOT = MIN(TBOT,255.15) ! set deep temp to at most -18C
 
           CALL NOAHMP_GLACIER(     I,       J,    COSZ,   NSNOW,   NSOIL,      DT, & ! IN : Time/Space/Model-related
                T_ML,    P_ML,    U_ML,    V_ML,    Q_ML,    SWDN,  & ! IN : Forcing
