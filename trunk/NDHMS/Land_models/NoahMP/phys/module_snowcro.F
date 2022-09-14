@@ -1,43 +1,3 @@
-module tp_netcdf_write_mod
-
-contains
-
-  subroutine tp_write_data_to_netcdf_2d(filename, varname, data)
-
-    use netcdf
-
-    implicit none
-
-    character(len=*) :: filename
-    character(len=*) :: varname
-    real, dimension(:, :), intent(in) :: data
-
-    ! local variables
-    integer :: ncid, data_id, n1_dimid, n2_dimid, dimids(2), ier
-
-
-    ! create a new netcdf file
-    ier = nf90_create(filename, nf90_clobber, ncid)
-
-    ! create dimensions
-    ier = nf90_def_dim(ncid, 'n1', size(data, 1), n1_dimid)
-    ier = nf90_def_dim(ncid, 'n2', size(data, 2), n2_dimid)
-    dimids = (/ n1_dimid, n2_dimid /)
-
-    ! create a variable in the netcdf file
-    ier = nf90_def_var(ncid, varname, NF90_REAL, dimids, data_id)
-
-    ! write the variable
-    ier = nf90_enddef(ncid)
-    ier = nf90_put_var(ncid, data_id, data)
-
-
-    ! close the file
-    ier = nf90_close(ncid)
-
-  end subroutine tp_write_data_to_netcdf_2d
-
-end module tp_netcdf_write_mod
 !     ##########################################################################
 MODULE MODULE_SNOWCRO
 
@@ -3232,10 +3192,6 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
   PTHRUFAL(JJ)  = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,KNLVLS_USE(JJ)) * XRHOLW / PTSTEP
  !
 ENDDO ! loop JJ grid points
-CALL tp_write_data_to_netcdf_2d('ZFLOWLIQ.nc', 'ZFLOWLIQ', ZFLOWLIQ) !TAMARA
-CALL tp_write_data_to_netcdf_2d('ZSNOWTEMP.nc', 'ZSNOWTEMP', ZSNOWTEMP) !TAMARA
-CALL tp_write_data_to_netcdf_2d('ZSNOWRHO.nc', 'ZSNOWRHO', ZSNOWRHO) !TAMARA
-CALL tp_write_data_to_netcdf_2d('ZSNOWLIQ.nc', 'ZSNOWLIQ', ZSNOWLIQ) !TAMARA
 !
 !IF (LHOOK) CALL DR_HOOK('SNOWCROREFRZ',1,ZHOOK_HANDLE)
 !
