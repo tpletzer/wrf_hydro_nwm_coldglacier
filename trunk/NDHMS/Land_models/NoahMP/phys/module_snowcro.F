@@ -3167,9 +3167,12 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ! 5. Density is adjusted to conserve the mass
     !    --------------------------------------------------------------
+    
     ZNUMER = ( ZSNOWRHO(JJ,JST) * PSNOWDZ(JJ,JST) - ( ZFLOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST-1) ) * XRHOLW )
     !
-    ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    IF (PSNOWRHO(JJ,JST).LT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    ENDIF !TAMARA
     !
     ! keeps snow denisty below ice density
     IF ( ZSNOWRHO(JJ,JST)>XRHOLI ) THEN
