@@ -86,9 +86,9 @@ REAL, SAVE       :: XANSMINMEB
 !REAL, PARAMETER       :: XALBICE1 = 0.23   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude 
 !REAL, PARAMETER       :: XALBICE2 = 0.15   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
 !REAL, PARAMETER       :: XALBICE3 = 0.06  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
-REAL, PARAMETER       :: XALBICE1 = 0.38   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude 
-REAL, PARAMETER       :: XALBICE2 = 0.23   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
-REAL, PARAMETER       :: XALBICE3 = 0.08  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
+REAL, PARAMETER       :: XALBICE1 = 0.60   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude !TAMARA
+REAL, PARAMETER       :: XALBICE2 = 0.36   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude !TAMARA
+REAL, PARAMETER       :: XALBICE3 = 0.08  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude !TAMARA
 
 !REAL, PARAMETER       :: XALBICE1 = 0.67   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude test snowalbedo instead
 !REAL, PARAMETER       :: XALBICE2 = 0.67   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
