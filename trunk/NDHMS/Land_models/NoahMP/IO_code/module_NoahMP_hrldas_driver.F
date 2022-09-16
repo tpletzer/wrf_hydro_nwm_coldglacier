@@ -1206,7 +1206,7 @@ module module_NoahMP_hrldas_driver
         WHERE(GLACINFO > 0.0) PSNOWRHOXY  (:,kk,:) = 900.
         WHERE(GLACINFO > 0.0) PSNOWDZXY   (:,kk,:) = GLACT/act_lev
         WHERE(GLACINFO > 0.0) PSNOWSWEXY  (:,kk,:) = PSNOWDZXY(:,kk,:)*PSNOWRHOXY(:,KK,:)
-        WHERE(GLACINFO > 0.0) PSNOWHEATXY (:,kk,:) = -PSNOWSWEXY(:,kk,:)*375820.0 !333231.05
+        WHERE(GLACINFO > 0.0) PSNOWHEATXY (:,kk,:) = -PSNOWSWEXY(:,kk,:)*371608.0 !375820.0 !333231.05
         WHERE(GLACINFO > 0.0) PSNOWGRAN1XY(:,kk,:) = 0.0009
         WHERE(GLACINFO > 0.0) PSNOWGRAN2XY(:,kk,:) = 99    ! 1
         WHERE(GLACINFO > 0.0) PSNOWAGEXY  (:,kk,:) = 20000
