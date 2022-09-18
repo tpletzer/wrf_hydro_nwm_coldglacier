@@ -545,6 +545,7 @@ CONTAINS
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWGRAN2
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWHIST
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWAGE
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWREFRZ
 
     REAL, DIMENSION(1) :: ZP_VMOD,ZP_RHOA, ZP_UREF
     REAL, DIMENSION(1) :: ZP_EXNS, ZP_EXNA, ZP_DIRCOSZW
@@ -607,6 +608,7 @@ CONTAINS
        allocate(ZP_SNOWGRAN2(1,1:act_level))
        allocate(ZP_SNOWHIST (1,1:act_level))
        allocate(ZP_SNOWAGE  (1,1:act_level))
+       allocate(ZP_SNOWREFRZ(1,1:act_level))
 
        HSNOWRES = 'ISBA-SNOW3L'  !   'DEF'
        OGLACIER = .false.
@@ -877,6 +879,7 @@ CONTAINS
           ZP_SNOWLIQ(1,1:act_level) = PSNOWLIQXY(I,1:act_level,J)
           ZP_SNOWTEMP(1,1:act_level) = PSNOWTEMPXY(I,1:act_level,J)
           ZP_SNOWDZ(1,1:act_level) = PSNOWDZXY(I,1:act_level,J)
+          ZP_SNOWREFRZ(1,1:act_level) = PSNOWREFRZXY(I,1:act_level,J)
           ZP_SNOWALB(1) =  PSNOWALBXY(I,J)
           ZP_EVAP(1)    =  0 !PSNOWEVAPXY(I,J)
           ZP_vis_icealb(1) = VIS_ICEALB(I,J)
@@ -1030,7 +1033,7 @@ CONTAINS
                   ZP_SW_RAD, ZP_QA, ZP_VMOD, ZP_LW_RAD, ZP_RHOA, ZP_UREF,      & !(IN)
                   ZP_EXNS, ZP_EXNA, ZP_DIRCOSZW, ZP_ZREF, ZP_Z0NAT, ZP_Z0EFF,  & !(IN)
                   ZP_Z0HNAT, ZP_ALB, ZP_SOILCOND, ZP_D_G,                      & !(IN)
-                  ZP_SNOWLIQ,                                                  & !(OUT)
+                  ZP_SNOWLIQ, ZP_SNOWREFRZ,                                    & !(OUT)
                   ZP_SNOWTEMP, ZP_SNOWDZ, ZP_THRUFAL, ZP_GRNDFLUX, ZP_EVAPCOR, & !(OUT)
                   ZP_RNSNOW, ZP_HSNOW, ZP_GFLUXSNOW, ZP_HPSNOW, ZP_LES3L,      & !(OUT)
                   ZP_LEL3L, ZP_EVAP, ZP_SNDRIFT, ZP_RI,                        & !(OUT)
@@ -1484,6 +1487,7 @@ CONTAINS
                 PSNOWHISTXY(I,1:act_level,J)  = ZP_SNOWHIST(1,1:act_level)
                 PSNOWAGEXY(I,1:act_level,J)   = ZP_SNOWAGE(1,1:act_level)
                 PSNOWLIQXY(I,1:act_level,J)   = ZP_SNOWLIQ(1,1:act_level)
+                PSNOWREFRZXY(I,1:act_level,J) = ZP_SNOWREFRZ(1,1:act_level)
                 PSNOWTEMPXY(I,1:act_level,J)  = ZP_SNOWTEMP(1,1:act_level)
                 PSNOWDZXY(I,1:act_level,J)    = ZP_SNOWDZ(1,1:act_level)
 
