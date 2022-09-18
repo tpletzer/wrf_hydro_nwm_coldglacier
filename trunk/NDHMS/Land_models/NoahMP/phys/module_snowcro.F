@@ -36,7 +36,7 @@ CONTAINS
                HSNOWMETAMO,HSNOWRAD,                                     &
                act_level, VIS_ICEALB,                                    &
                PFSA_CROCUS, PFSR_CROCUS, PFIRA_CROCUS,                   &
-               FLOW_ICE, FLOW_SNOW,                                      &
+               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ                           &
                I,J)                  !(OUT))
 !     ##########################################################################
 !
