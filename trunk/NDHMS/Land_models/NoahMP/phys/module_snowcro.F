@@ -266,10 +266,12 @@ REAL, DIMENSION(:,:), INTENT(INOUT)  :: PSNOWGRAN1, PSNOWGRAN2, PSNOWHIST
 !                                                   dendritic snow)
 REAL, DIMENSION(:,:), INTENT(INOUT)  :: PSNOWAGE  ! Snow grain age
 !
-REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWLIQ, PSNOWTEMP, PSNOWDZ
+REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWLIQ, PSNOWTEMP, PSNOWDZ, PSNOWREFRZ
 !                                      PSNOWLIQ  = Snow layer(s) liquid water content (m)
 !                                      PSNOWTEMP = Snow layer(s) temperature (m)
 !                                      PSNOWDZ   = Snow layer(s) thickness (m)
+!                                      PSNOWREFRZ = Snow layers(s) refrozen
+!                                                   (mmwe)
 !
 REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR
 !                                      PTHRUFAL  = rate that liquid water leaves snow pack:
@@ -3056,6 +3058,8 @@ REAL, DIMENSION(:), INTENT(IN)        :: PRR
 !
 REAL, DIMENSION(:,:), INTENT(INOUT)   :: PSNOWDZ, PSNOWTEMP, PSNOWLIQ, PSNOWRHO
 !
+REAL, DIMENSION(:,:), INTENT(OUT)   :: PSNOWREFRZ
+!
 REAL, DIMENSION(:), INTENT(INOUT)     :: PTHRUFAL
 !
 ! modifs_EB layers
@@ -3136,6 +3140,9 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     ZPHASE(JJ,JST) = MIN( PSCAP(JJ,JST)* MAX(0.0, XTT - ZSNOWTEMP(JJ,JST)) * PSNOWDZ(JJ,JST), &
                           PSNOWLIQ(JJ,JST) * XLMTT * XRHOLW )
     !
+    ! Update PSNOWREFRZ with amount of water refrozen
+    PSNOWREFRZ(JJ,JST) = ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
+    ! 
     ! Reduce liquid content if freezing occurs:
     ZSNOWLIQ(JJ,JST) = PSNOWLIQ(JJ,JST) - ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
     !
