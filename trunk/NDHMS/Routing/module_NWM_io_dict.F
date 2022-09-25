@@ -1227,7 +1227,7 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                             "kg/(m2 s)","m","kg m-2",&                         !102-104
                             "m","-","days since snowfall",&                    !105-107
                             "K","m","-",&                                      !108-110
-                            "kg/m3","J/m2","m","mmwe",&                        !111-114
+                            "kg/m3","J/m2","m","kg/m3",&                        !111-114
                             "kg m-2","kg/m2","kg/m2"]                          !115-117
 
    ldasOutDict%scaleFactor(:) = [1.0, 1.0, 0.01, 0.1, 0.1, &                   !1-5

@@ -36,7 +36,7 @@ CONTAINS
                HSNOWMETAMO,HSNOWRAD,                                     &
                act_level, VIS_ICEALB,                                    &
                PFSA_CROCUS, PFSR_CROCUS, PFIRA_CROCUS,                   &
-               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ                           &
+               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ,                           &
                I,J)                  !(OUT))
 !     ##########################################################################
 !
@@ -655,6 +655,7 @@ DO JJ = 1,SIZE(ZSNOW)
     PSNOWHEAT (JJ,JST) = 0.
     ZSNOWTEMP (JJ,JST) = XTT
     PSNOWLIQ  (JJ,JST) = 0.
+    PSNOWREFRZ(JJ,JST) = 0.
   ENDDO  !  end loop unactive snow layers
   !
 ENDDO    ! end loop grid points
@@ -991,7 +992,7 @@ PGRNDFLUX(:) = PGRNDFLUX(:) + ZRADXS(:)
 ! And refreezing/freezing of meltwater/rainfall (ripening of the snow)
 !
 
- CALL SNOWCROREFRZ(PTSTEP,PRR,PSNOWRHO,ZSNOWTEMP,PSNOWDZ,PSNOWLIQ,PTHRUFAL, &
+ CALL SNOWCROREFRZ(PTSTEP,PRR,PSNOWRHO,ZSNOWTEMP,PSNOWDZ,PSNOWLIQ,PSNOWREFRZ,PTHRUFAL, &
                    ZSCAP,PLEL3L,INLVLS_USE                                  )
 
 ! ++ trude
@@ -3029,7 +3030,7 @@ END SUBROUTINE SNOWCROMELT
 !####################################################################
 !####################################################################
 SUBROUTINE SNOWCROREFRZ(PTSTEP,PRR,                            &
-                        PSNOWRHO,PSNOWTEMP,PSNOWDZ,PSNOWLIQ,   &
+                        PSNOWRHO,PSNOWTEMP,PSNOWDZ,PSNOWLIQ,PSNOWREFRZ, &
                         PTHRUFAL, PSCAP, PLEL3L,KNLVLS_USE     )
 !
 !!    PURPOSE
@@ -3058,7 +3059,7 @@ REAL, DIMENSION(:), INTENT(IN)        :: PRR
 !
 REAL, DIMENSION(:,:), INTENT(INOUT)   :: PSNOWDZ, PSNOWTEMP, PSNOWLIQ, PSNOWRHO
 !
-REAL, DIMENSION(:,:), INTENT(OUT)   :: PSNOWREFRZ
+REAL, DIMENSION(:,:), INTENT(INOUT)   :: PSNOWREFRZ
 !
 REAL, DIMENSION(:), INTENT(INOUT)     :: PTHRUFAL
 !
@@ -3142,6 +3143,7 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ! Update PSNOWREFRZ with amount of water refrozen
     PSNOWREFRZ(JJ,JST) = ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
+    !PSNOWREFRZ(JJ,JST) = PSNOWLIQ(JJ,JST)
     ! 
     ! Reduce liquid content if freezing occurs:
     ZSNOWLIQ(JJ,JST) = PSNOWLIQ(JJ,JST) - ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
