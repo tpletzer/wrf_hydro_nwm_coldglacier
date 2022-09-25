@@ -65,7 +65,7 @@ CONTAINS
               PSNOWALBXY, PSNOWAGEXY, act_level,                            & ! IN/OUT for crocus
               PSNOWHEIGHTXY, PSNOWTOTSWEXY,  PSNOWTHRUFALXY,                & ! OUT    for crocus
               GLACINFO ,GLACT,                                              & ! IN/OUT for crocus
-              FLOW_ICE, FLOW_SNOW,                                          & ! OUT    for crocus
+              FLOW_ICE, FLOW_SNOW, PSNOWREFRZXY,                            & ! OUT    for crocus
               crocus_opt,                                                   & ! IN     for crocus
 #ifdef SPATIAL_SOIL
                  BEXP_3D,SMCDRY_3D,SMCWLT_3D,SMCREF_3D,SMCMAX_3D,             &
@@ -512,6 +512,7 @@ CONTAINS
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWLIQXY
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWTEMPXY
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWDZXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWREFRZXY
 
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWTHRUFALXY ! rate that liquid water leaves snow pack [kg/(m2 s)]   (should only be out)
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWHEIGHTXY   ! integrated crocus snowheight PSNOWDZXY
@@ -1033,7 +1034,7 @@ CONTAINS
                   ZP_SW_RAD, ZP_QA, ZP_VMOD, ZP_LW_RAD, ZP_RHOA, ZP_UREF,      & !(IN)
                   ZP_EXNS, ZP_EXNA, ZP_DIRCOSZW, ZP_ZREF, ZP_Z0NAT, ZP_Z0EFF,  & !(IN)
                   ZP_Z0HNAT, ZP_ALB, ZP_SOILCOND, ZP_D_G,                      & !(IN)
-                  ZP_SNOWLIQ, ZP_SNOWREFRZ,                                    & !(OUT)
+                  ZP_SNOWLIQ,                                                  & !(OUT)
                   ZP_SNOWTEMP, ZP_SNOWDZ, ZP_THRUFAL, ZP_GRNDFLUX, ZP_EVAPCOR, & !(OUT)
                   ZP_RNSNOW, ZP_HSNOW, ZP_GFLUXSNOW, ZP_HPSNOW, ZP_LES3L,      & !(OUT)
                   ZP_LEL3L, ZP_EVAP, ZP_SNDRIFT, ZP_RI,                        & !(OUT)
@@ -1044,7 +1045,7 @@ CONTAINS
                   OSNOW_ABS_ZENITH, HSNOWMETAMO,HSNOWRAD,                      &
                   act_level, ZP_VIS_ICEALB,                                    &
                   ZP_FSA_CROCUS, ZP_FSR_CROCUS, ZP_FIRA_CROCUS,                &
-                  ZFLOW_ICE, ZFLOW_SNOW,                                       &
+                  ZFLOW_ICE, ZFLOW_SNOW, ZP_SNOWREFRZ,                         &
                   I,J) !(OUT)
 
              !  Call to NOAHM_GLACIER to after CROCUS to calculte 2m temp and other 2m variables.
