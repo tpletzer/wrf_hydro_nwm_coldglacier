@@ -19,7 +19,7 @@ implicit none
 
 ! Declare parameter values for module.
 integer, parameter :: numChVars = 11
-integer, parameter :: numLdasVars = 117
+integer, parameter :: numLdasVars = 122
 ! Note: if more ldas variables are added the logic will need to be changed in
 !       module_NWM_io.F:output_NoahMP_NWM for when to close the restart file
 integer, parameter :: numLdasVars_crocus_off = 98
@@ -1081,7 +1081,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                "PSNOWGRAN1","PSNOWGRAN2","PSNOWAGE",&                    !105-107
                                "PSNOWTEMP","PSNOWDZ","PSNOWHIST",&                       !108-110
                                "PSNOWLIQ","PSNOWHEAT","PSNOWRHO","PSNOWREFRZ",&          !111-114
-                               "PSNOWSWE", "FLOW_ICE", "FLOW_SNOW"]                      !115-117
+                               "PSNOWSWE","PSNOWRPH","PSNOWMELT","PSNOWMPH","PSNOWSWP",& !115-119
+                               "FLOW_ICE","FLOW_SNOW","PSNOWSUBL"]                       !120-122
 
   ldasOutDict%longName(:) = [character(len=128) :: &
                               "Dominant vegetation category",&          !1
@@ -1199,8 +1200,13 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                "Snow density",&                         !113
                                "Amount of liquid refrozen in snow",&    !114
                                "Snow water equivalent", &               !115
-                               "Accumulated glacier melt from ice", &   !116
-                               "Accumulated glacier melt from snow"]    !117
+                               "Energy used to refreeze water",&        !116
+                               "Amount of liquid melt  in snow",&       !117
+                               "Energy used to melt snow",&             !118
+                               "SW penetrative radiation per layer",&   !119
+                               "Accumulated glacier melt from ice", &   !120
+                               "Accumulated glacier melt from snow",&   !121
+                               "Sublimation rate"]                      !122
 
    ldasOutDict%units(:) = [character(len=64) :: &
                             "category","category","-","-","-", &               !1-5
@@ -1227,8 +1233,9 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                             "kg/(m2 s)","m","kg m-2",&                         !102-104
                             "m","-","days since snowfall",&                    !105-107
                             "K","m","-",&                                      !108-110
-                            "kg/m3","J/m2","m","kg/m3",&                        !111-114
-                            "kg m-2","kg/m2","kg/m2"]                          !115-117
+                            "kg/m3","J/m2","m","kg/m3",&                       !111-114
+                            "kg m-2","W m-2","kg/m3","W m-2","W m-2",&         !115-119
+                            "kg/m2","kg/m2","m"]                               !120-122
 
    ldasOutDict%scaleFactor(:) = [1.0, 1.0, 0.01, 0.1, 0.1, &                   !1-5
                                  0.1, 0.01, 0.1, 0.00001, 0.01, &              !6-10
@@ -1254,8 +1261,9 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                  1.0,1.0,0.01, &                               !102-104
                                  0.01,0.01,0.0001, &                           !105-107
                                  0.01,1.0,1.0, &                               !108-110
-                                 0.0001,0.000001,0.001, 0.0001, &              !111-114
-                                 0.000001, 0.01, 0.01]                         !115-117
+                                 0.0001,0.000001,0.001,0.0001, &               !111-114
+                                 0.000001, 0.1, 0.0001, 0.1, 0.1, &            !115-119
+                                 0.01,0.01,0.001]                              !120-122
 
    ldasOutDict%addOffset(:) = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0, & !1-10
                                0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0, & !11-20
@@ -1272,7 +1280,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                0.0,0.0,0.0, &                             !105-107
                                0.0,0.0,0.0, &                             !108-110
                                0.0,0.0,0.0,0.0, &                         !111-114
-                               0.0,0.0,0.0]                               !115-117
+                               0.0,0.0,0.0,0.0,0.0, &                     !115-119
+                               0.0,0.0,0.0]                               !120-122
 
    ! Note that output flags will be set in the the output routine, and will vary
    ! by the IOC flag specified in hydro.namelist.
@@ -1291,7 +1300,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                              0,0,0, &               !105-107
                              0,0,0, &               !108-110
                              0,0,0,0, &             !111-114
-                             0,0,0]                 !115-117
+                             0,0,0,0,0, &           !115-119
+                             0,0,0]                 !120-122
 
    ldasOutDict%timeZeroFlag(:) = [1,1,1,1,1,1,1,1,1,1, & !1-10
                                   1,1,1,1,1,1,1,1,1,1, & !11-20
@@ -1308,7 +1318,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                   1,1,1, &               !105-107
                                   1,1,1, &               !108-110
                                   1,1,1,1, &             !111-114
-                                  1,1,1]                 !115-117
+                                  1,1,1,1,1, &           !115-119
+                                  1,1,1]                 !120-122
 
    ldasOutDict%numLev(:) = [1,1,1,1,1,1,1,1,1,1, &  !1-10
                             1,1,1,1,1,1,1,1,1,1, &  !11-20
@@ -1325,8 +1336,9 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                             40,40,40, &             !105-107
                             40,40,40, &             !108-110
                             40,40,40,40, &          !111-114
-                            40,1,1]                 !115-117
-   ldasOutDict%numLev(105:115) = ldasOutDict%act_lev ! Set crocus levels to number from namelist
+                            40,40,40,40,40, &       !115-119
+                            1,1,1]                  !120-122
+   ldasOutDict%numLev(105:119) = ldasOutDict%act_lev ! Set crocus levels to number from namelist
 
    ldasOutDict%missingReal(:) = [-9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !1-5
                                  -9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !6-10
@@ -1353,7 +1365,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                  -9999.0,-9999.0,-9999.0,                 & !105-107
                                  -9999.0,-9999.0,-9999.0,                 & !108-110
                                  -9999.0,-9999.0,-9999.0,-9999.0,         & !111-114
-                                 -9999.0,-9999.0,-9999.0 ]                  !115-117
+                                 -9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !115-119
+                                 -9999.0,-9999.0,-9999.0 ]                  !120-122
 
    ldasOutDict%fillReal(:) = [-9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !1-5
                               -9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !6-10
@@ -1380,8 +1393,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                               -9999.0,-9999.0,-9999.0,                 & !105-107
                               -9999.0,-9999.0,-9999.0,                 & !108-110
                               -9999.0,-9999.0,-9999.0,-9999.0,         & !111-114
-                              -9999.0,-9999.0,-9999.0 ]                  !115-117
-
+                              -9999.0,-9999.0,-9999.0,-9999.0,-9999.0, & !115-119
+                              -9999.0,-9999.0,-9999.0 ]                  !120-122
    ldasOutDict%validMinDbl(:) = [0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, &                     !1-5
                                  -1000.0d0, -1.0d0, -1500.0d0, 0.0d0, 0.0d0, &            !6-10
                                  -1500.0d0, -1500.0d0, -1500.0d0, -1500.0d0, -1500.0d0, & !11-15
@@ -1408,7 +1421,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                  -1.0D+3,0.0d0,0.0d0, &                                   !105-107
                                  0.0d0,0.0d0,0.0d0, &                                     !108-110
                                  0.0d0,-1.0d0+7,0.0d0,0.0d0, &                            !111-114
-                                 0.0d0,0.0d0,0.0d0 ]                                      !115-117
+                                 0.0d0,-1500.0d0,0.0d0,-1500.0d0,-1500.0d0, &             !115-119
+                                 0.0d0,0.0d0,0.0d0 ]                                      !120-122
 
    ldasOutDict%validMaxDbl(:) = [100.0d0, 100.0d0, 1.0d0, 20.0d0, 20.0d0, &             !1-5
                                  3000.0d0, 1.0d0, 1500.0d0, 100.0d0, 1.0d0, &           !6-10
@@ -1436,7 +1450,8 @@ subroutine initLdasDict(ldasOutDict,procId,diagFlag)
                                  1.0D+3, 1.0D+3, 1.0D+6, &                              !105-107
                                  300.0d0, 1.0D+4, 1.0D+4, &                             !108-110
                                  1.0d0, 0.0d0, 1.0D+3, 1.0d0, &                         !111-114
-                                 1.0D+9,1000.d0,1000.d0]                                !115-117
+                                 1.0D+9,1500.0d0,1.0d0,1500.0d0,1500.0d0, &             !115-119
+                                 1000.d0,1000.d0,1.0D+3]                                !120-122
 
    ! Loop through and calculate missing/fill/min/max values that will be placed
    ! into the NetCDF attributes after scale_factor/add_offset are applied.
