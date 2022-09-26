@@ -1,3 +1,4 @@
+!     ##########################################################################
 MODULE MODULE_SNOWCRO
 
 !SFX_LIC Copyright 1994-2014 CNRS, Meteo-France and Universite Paul Sabatier
@@ -3040,6 +3041,7 @@ USE MODD_SNOW_PAR, ONLY : XSNOWDMIN
 
 !
 USE MODE_SNOW3L
+!USE tp_netcdf_write_mod !TAMARA
 !
 !USE PARKIND1  ,ONLY : JPRB  ! trude added
 !
@@ -3085,13 +3087,22 @@ INTEGER :: INLVLS     ! maximum snow layers number
 !
 INLVLS = SIZE(PSNOWDZ,2)
 !
+!TAMARA TEST
+!DO JJ=1,SIZE(PSNOWDZ,1)
+!  DO JST=1,6
+!    PSNOWRHO(JJ,JST) = 700.0
+!    PSNOWTEMP(JJ,JST) = 273.16
+!    PSNOWLIQ(JJ,JST) = 0.05
+!  ENDDO
+!ENDDO
+!TAMARA TEST
 DO JJ=1,SIZE(PSNOWDZ,1)
   DO JST=1,KNLVLS_USE(JJ)
     ZSNOWRHO (JJ,JST) = PSNOWRHO(JJ,JST)
     ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST)
     ZWHOLDMAX(JJ,JST) = SNOWCROHOLD( PSNOWRHO(JJ,JST),PSNOWLIQ(JJ,JST),PSNOWDZ(JJ,JST) )
 ! trude test with not allowing liquid if psnowrho >  XRHOTHRESHOLD_ICE  (i.e. no liquid in ice)
-!      IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE)  ZWHOLDMAX (JJ,JST)=0
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0.
 ! end trude test
 
   ENDDO
@@ -3148,11 +3159,20 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ZSNOWLIQ(JJ,JST) = ZSNOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST)
     !
+    ! If ice, all liq water in layer runsoff and zsnowliq->0, zflowliq->0 
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST)
+      ZFLOWLIQ(JJ,JST) = 0.
+    ENDIF !TAMARA
+    !
     ! 5. Density is adjusted to conserve the mass
     !    --------------------------------------------------------------
+    
     ZNUMER = ( ZSNOWRHO(JJ,JST) * PSNOWDZ(JJ,JST) - ( ZFLOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST-1) ) * XRHOLW )
     !
-    ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    IF (PSNOWRHO(JJ,JST).LT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    ENDIF !TAMARA
     !
     ! keeps snow denisty below ice density
     IF ( ZSNOWRHO(JJ,JST)>XRHOLI ) THEN
