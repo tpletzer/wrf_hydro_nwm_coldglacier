@@ -2319,6 +2319,7 @@ DO JJ = 1,SIZE(PSW_RAD)
     PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
                        ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
+    !PSNOWSWP = PRADSINK(JJ,JST)
   ENDDO    ! end loop snow layers
   !
   ! For thin snow packs, radiation might reach base of
@@ -2982,6 +2983,8 @@ DO JJ = 1,SIZE(PSNOWDZ,1)
      ! liquid water available for next layer from melting of snow
      ! which is assumed to be leaving the current layer (m):
      ZSNOWMELT(JJ,JST) = ZPHASE(JJ,JST) / (XLMTT*XRHOLW)
+     !PSNOWMELT(JJ,JST) = ZSNOWMELT(JJ,JST)
+     !PSNOWMEPHASE(JJ,JST) = ZPHASE(JJ,JST)
      !
      ! Cool off snow layer temperature due to melt:
      ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST) - ZPHASE(JJ,JST) / (PSCAP(JJ,JST)*PSNOWDZ(JJ,JST))
@@ -3143,7 +3146,7 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ! Update PSNOWREFRZ with amount of water refrozen
     PSNOWREFRZ(JJ,JST) = ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
-    !PSNOWREFRZ(JJ,JST) = PSNOWLIQ(JJ,JST)
+    !PSNOWREFPHASE(JJ,JST) = ZPHASE(JJ,JST) 
     ! 
     ! Reduce liquid content if freezing occurs:
     ZSNOWLIQ(JJ,JST) = PSNOWLIQ(JJ,JST) - ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
@@ -3523,6 +3526,7 @@ WHERE ( PSNOWDZ>0.0 )
   PSNOWDZ(:)    = MAX( 0.0, ZSNOWDZ(:) )
   ZEVAPCOR(:)   = ZEVAPCOR(:) + MAX(0.0,-ZSNOWDZ(:)) * PSNOWRHO(:) / PTSTEP
   !
+  !PSNOWSUBL(:) = ZSNOWEVAPS(:)
   ! Total heat content change due to snowfall and sublimation (added here):
   ! (for budget calculations):
   !
