@@ -36,8 +36,9 @@ CONTAINS
                HSNOWMETAMO,HSNOWRAD,                                     &
                act_level, VIS_ICEALB,                                    &
                PFSA_CROCUS, PFSR_CROCUS, PFIRA_CROCUS,                   &
-               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ,                           &
-               I,J)                  !(OUT))
+               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ,                          &
+               PSNOWRPH, PSNOWMELT, PSNOWMPH, PSNOWSWP,                  &
+               PSUBL, I, J)                                         !(OUT))
 !     ##########################################################################
 !
 !!****  *SNOWCRO*
@@ -273,7 +274,17 @@ REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWLIQ, PSNOWTEMP, PSNOWDZ, PSNOWREFRZ
 !                                      PSNOWREFRZ = Snow layers(s) refrozen
 !                                                   (mmwe)
 !
-REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR
+REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWRPH, PSNOWMELT, PSNOWMPH, PSNOWSWP
+!                                      PSNOWRPH  = Snow layer(s) energy refrz
+!                                                   (W/m2)
+!                                      PSNOWMELT = Snow layer(s) melt content (mmwe)
+!                                      PSNOWMPH   = Snow layer(s) energy melt
+!                                                   (W/m2)
+!                                      PSNOWSWP = Snow layers(s) sw penetrative
+!                                                   (W/m2)
+!                                                
+!
+REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR, PSUBL
 !                                      PTHRUFAL  = rate that liquid water leaves snow pack:
 !                                                  paritioned into soil infiltration/runoff
 !                                                  by ISBA [kg/(m2 s)]
@@ -283,6 +294,8 @@ REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR
 !                                                  actual snow cover (as snow vanishes)
 !                                                  and apply it as a surface soil water
 !                                                  sink. [kg/(m2 s)]
+!                                      PSUBL     = amt sublimated top layer (m?)
+!
 ! ++ trude
 REAL, DIMENSION(:), INTENT(OUT)    :: FLOW_ICE,FLOW_SNOW
 ! -- trude
@@ -479,6 +492,7 @@ PLEL3L     = 0.
 PHPSNOW    = 0.
 PEVAPCOR   = 0.
 PTHRUFAL   = 0.
+PSUBL      = 0.
 !
 ! pour imprimer des diagnostics sur un des points
 IPRINT = 1
@@ -656,6 +670,10 @@ DO JJ = 1,SIZE(ZSNOW)
     ZSNOWTEMP (JJ,JST) = XTT
     PSNOWLIQ  (JJ,JST) = 0.
     PSNOWREFRZ(JJ,JST) = 0.
+    PSNOWRPH(JJ,JST) = 0.
+    PSNOWMELT(JJ,JST) = 0.
+    PSNOWMPH(JJ,JST) = 0.
+    PSNOWSWP(JJ,JST) = 0.
   ENDDO  !  end loop unactive snow layers
   !
 ENDDO    ! end loop grid points
