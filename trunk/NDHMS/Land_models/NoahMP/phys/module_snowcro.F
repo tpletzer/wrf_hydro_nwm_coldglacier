@@ -1039,6 +1039,7 @@ ENDIF
  CALL SNOWCROEVAPN(PLES3L,PTSTEP,ZSNOWTEMP(:,1),PSNOWRHO(:,1), &
                    PSNOWDZ(:,1),PEVAPCOR,PSNOWHMASS,PSNOWSUBL     )
 !
+PSNOWSUBL = PSNDRIFT
 !***************************************DEBUG IN**********************************************
 !IF (GCRODEBUGDETAILSPRINT) THEN
 !  CALL SNOWCROPRINTPROFILE("after SNOWCROEVAPN", INLVLS_USE(IDEBUG),LPRINTGRAN,             &
@@ -2312,6 +2313,7 @@ DO JJ = 1,SIZE(PSW_RAD)
   ! in snow due to zenithal angle
   ZPROJLAT = 1. / MAX( XUEPSI, COS(PZENITH(JJ)) )
   !
+  !PRADSINK(JJ,:) = -900. * ( 1.-PSNOWALB(JJ) ) / ( 1.-ZALB_NEW(JJ) ) !TAMARA
   PRADSINK(JJ,:) = -PSW_RAD(JJ) * ( 1.-PSNOWALB(JJ) ) / ( 1.-ZALB_NEW(JJ) )
   !
   !   Initialize optical depth
@@ -2984,6 +2986,16 @@ DO JJ = 1,SIZE(PSNOWDZ,1)
      ZSNOWTEMP (JJ,JST) = 0.0
    ENDDO
 ENDDO
+!
+!TAMARA
+!DO JJ=1,SIZE(PSNOWDZ,1)
+!  DO JST=1,6
+!    PSNOWRHO(JJ,JST) = 700.0
+!    PSNOWTEMP(JJ,JST) = 274.16
+!    PSNOWLIQ(JJ,JST) = 0.0
+!  ENDDO
+!ENDDO
+!TAMARA
 !
 ! 1. Determine amount of melt in each layer:
 ! ------------------------------------------
