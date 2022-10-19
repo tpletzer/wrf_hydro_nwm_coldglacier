@@ -65,7 +65,8 @@ CONTAINS
               PSNOWALBXY, PSNOWAGEXY, act_level,                            & ! IN/OUT for crocus
               PSNOWHEIGHTXY, PSNOWTOTSWEXY,  PSNOWTHRUFALXY,                & ! OUT    for crocus
               GLACINFO ,GLACT,                                              & ! IN/OUT for crocus
-              FLOW_ICE, FLOW_SNOW,                                          & ! OUT    for crocus
+              FLOW_ICE, FLOW_SNOW, PSNOWREFRZXY,                            & ! OUT    for crocus
+              PSNOWRPHXY, PSNOWMELTXY, PSNOWMPHXY, PSNOWSWPXY, PSNOWSUBLXY, & ! OUT    for crocus
               crocus_opt,                                                   & ! IN     for crocus
 #ifdef SPATIAL_SOIL
                  BEXP_3D,SMCDRY_3D,SMCWLT_3D,SMCREF_3D,SMCMAX_3D,             &
@@ -512,12 +513,18 @@ CONTAINS
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWLIQXY
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWTEMPXY
     REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWDZXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWREFRZXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWRPHXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWMELTXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWMPHXY
+    REAL, DIMENSION(:,:,:), INTENT(INOUT), allocatable   :: PSNOWSWPXY
 
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWTHRUFALXY ! rate that liquid water leaves snow pack [kg/(m2 s)]   (should only be out)
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWHEIGHTXY   ! integrated crocus snowheight PSNOWDZXY
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWTOTSWEXY   ! crocus snowheight PSNOWSWE
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  ::   FLOW_ICE
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  ::   FLOW_SNOW
+    REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: PSNOWSUBLXY ! rate of subl [kg/(m2 s)]   (should only be out)
     INTEGER,DIMENSION(:,:), INTENT(INOUT), allocatable  :: GLACINFO
     REAL, DIMENSION(:,:),   INTENT(INOUT), allocatable  :: GLACT
     INTEGER,                INTENT(IN)                  :: crocus_opt
@@ -545,13 +552,18 @@ CONTAINS
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWGRAN2
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWHIST
     REAL, DIMENSION(:,:), allocatable :: ZP_SNOWAGE
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWREFRZ
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWRPH
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWMELT
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWMPH
+    REAL, DIMENSION(:,:), allocatable :: ZP_SNOWSWP
 
     REAL, DIMENSION(1) :: ZP_VMOD,ZP_RHOA, ZP_UREF
     REAL, DIMENSION(1) :: ZP_EXNS, ZP_EXNA, ZP_DIRCOSZW
     REAL, DIMENSION(1) :: ZP_Z0NAT
     REAL, DIMENSION(1) :: ZP_Z0HNAT, ZP_ALB, ZP_SOILCOND
     REAL, DIMENSION(1) :: ZP_D_G,ZP_SNOWALB, ZP_VIS_ICEALB
-    REAL, DIMENSION(1) :: ZFLOW_ICE, ZFLOW_SNOW
+    REAL, DIMENSION(1) :: ZFLOW_ICE, ZFLOW_SNOW, ZP_SUBL
     REAL, DIMENSION(1) :: ZP_THRUFAL, ZP_GRNDFLUX, ZP_EVAPCOR
     REAL, DIMENSION(1) :: ZP_RNSNOW, ZP_GFLUXSNOW, ZP_HPSNOW
     REAL, DIMENSION(1) :: ZP_LEL3L, ZP_SNDRIFT, ZP_RI
@@ -607,6 +619,11 @@ CONTAINS
        allocate(ZP_SNOWGRAN2(1,1:act_level))
        allocate(ZP_SNOWHIST (1,1:act_level))
        allocate(ZP_SNOWAGE  (1,1:act_level))
+       allocate(ZP_SNOWREFRZ(1,1:act_level))
+       allocate(ZP_SNOWRPH  (1,1:act_level))
+       allocate(ZP_SNOWMELT (1,1:act_level))
+       allocate(ZP_SNOWMPH  (1,1:act_level))
+       allocate(ZP_SNOWSWP  (1,1:act_level))
 
        HSNOWRES = 'ISBA-SNOW3L'  !   'DEF'
        OGLACIER = .false.
@@ -877,6 +894,11 @@ CONTAINS
           ZP_SNOWLIQ(1,1:act_level) = PSNOWLIQXY(I,1:act_level,J)
           ZP_SNOWTEMP(1,1:act_level) = PSNOWTEMPXY(I,1:act_level,J)
           ZP_SNOWDZ(1,1:act_level) = PSNOWDZXY(I,1:act_level,J)
+          ZP_SNOWREFRZ(1,1:act_level) = PSNOWREFRZXY(I,1:act_level,J)
+          ZP_SNOWRPH(1,1:act_level) = PSNOWRPHXY(I,1:act_level,J)
+          ZP_SNOWMELT(1,1:act_level) = PSNOWMELTXY(I,1:act_level,J)
+          ZP_SNOWMPH(1,1:act_level) = PSNOWMPHXY(I,1:act_level,J)
+          ZP_SNOWSWP(1,1:act_level) = PSNOWSWPXY(I,1:act_level,J)
           ZP_SNOWALB(1) =  PSNOWALBXY(I,J)
           ZP_EVAP(1)    =  0 !PSNOWEVAPXY(I,J)
           ZP_vis_icealb(1) = VIS_ICEALB(I,J)
@@ -975,6 +997,7 @@ CONTAINS
           ZP_SRSNOW(1)   = PRCP*ZFPICE
 
           ZP_THRUFAL(:) = 0.0
+          ZP_SUBL(:)    = 0.0
       end if ! crocus_opt /= 0
 
        IF(VEGTYP == 25) FVEG = 0.0                  ! Set playa, lava, sand to bare
@@ -1041,8 +1064,9 @@ CONTAINS
                   OSNOW_ABS_ZENITH, HSNOWMETAMO,HSNOWRAD,                      &
                   act_level, ZP_VIS_ICEALB,                                    &
                   ZP_FSA_CROCUS, ZP_FSR_CROCUS, ZP_FIRA_CROCUS,                &
-                  ZFLOW_ICE, ZFLOW_SNOW,                                       &
-                  I,J) !(OUT)
+                  ZFLOW_ICE, ZFLOW_SNOW, ZP_SNOWREFRZ,                         &
+                  ZP_SNOWRPH, ZP_SNOWMELT, ZP_SNOWMPH, ZP_SNOWSWP,             &
+                  ZP_SUBL, I, J) !(OUT)
 
              !  Call to NOAHM_GLACIER to after CROCUS to calculte 2m temp and other 2m variables.
              !  But use snow info from CROCUS.
@@ -1484,6 +1508,11 @@ CONTAINS
                 PSNOWHISTXY(I,1:act_level,J)  = ZP_SNOWHIST(1,1:act_level)
                 PSNOWAGEXY(I,1:act_level,J)   = ZP_SNOWAGE(1,1:act_level)
                 PSNOWLIQXY(I,1:act_level,J)   = ZP_SNOWLIQ(1,1:act_level)
+                PSNOWREFRZXY(I,1:act_level,J) = ZP_SNOWREFRZ(1,1:act_level)
+                PSNOWRPHXY(I,1:act_level,J)   = ZP_SNOWRPH(1,1:act_level)
+                PSNOWMELTXY(I,1:act_level,J)  = ZP_SNOWMELT(1,1:act_level)
+                PSNOWMPHXY(I,1:act_level,J)   = ZP_SNOWMPH(1,1:act_level)
+                PSNOWSWPXY(I,1:act_level,J)   = ZP_SNOWSWP(1,1:act_level)
                 PSNOWTEMPXY(I,1:act_level,J)  = ZP_SNOWTEMP(1,1:act_level)
                 PSNOWDZXY(I,1:act_level,J)    = ZP_SNOWDZ(1,1:act_level)
 
@@ -1491,6 +1520,7 @@ CONTAINS
                 PSNOWTHRUFALXY(I,J) = ZP_THRUFAL(1)*DT
                 FLOW_ICE(I,J)       = FLOW_ICE(I,J)+ZFLOW_ICE(1)*DT
                 FLOW_SNOW(I,J)      = FLOW_SNOW(I,J)+ZFLOW_SNOW(1)*DT
+                PSNOWSUBLXY(I,J)    = ZP_SUBL(1)*DT
                 PSNOWHEIGHTXY(I,J)  = sum(PSNOWDZXY(I,:,J))
                 PSNOWTOTSWEXY(I,J)  = sum(PSNOWSWEXY(I,:,J))
 

@@ -36,8 +36,9 @@ CONTAINS
                HSNOWMETAMO,HSNOWRAD,                                     &
                act_level, VIS_ICEALB,                                    &
                PFSA_CROCUS, PFSR_CROCUS, PFIRA_CROCUS,                   &
-               FLOW_ICE, FLOW_SNOW,                                      &
-               I,J)                  !(OUT))
+               FLOW_ICE, FLOW_SNOW, PSNOWREFRZ,                          &
+               PSNOWRPH, PSNOWMELT, PSNOWMPH, PSNOWSWP,                  &
+               PSNOWSUBL, I, J)                                         !(OUT))
 !     ##########################################################################
 !
 !!****  *SNOWCRO*
@@ -266,12 +267,24 @@ REAL, DIMENSION(:,:), INTENT(INOUT)  :: PSNOWGRAN1, PSNOWGRAN2, PSNOWHIST
 !                                                   dendritic snow)
 REAL, DIMENSION(:,:), INTENT(INOUT)  :: PSNOWAGE  ! Snow grain age
 !
-REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWLIQ, PSNOWTEMP, PSNOWDZ
+REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWLIQ, PSNOWTEMP, PSNOWDZ, PSNOWREFRZ
 !                                      PSNOWLIQ  = Snow layer(s) liquid water content (m)
 !                                      PSNOWTEMP = Snow layer(s) temperature (m)
 !                                      PSNOWDZ   = Snow layer(s) thickness (m)
+!                                      PSNOWREFRZ = Snow layers(s) refrozen
+!                                                   (mmwe)
 !
-REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR
+REAL, DIMENSION(:,:), INTENT(OUT)    :: PSNOWRPH, PSNOWMELT, PSNOWMPH, PSNOWSWP
+!                                      PSNOWRPH  = Snow layer(s) energy refrz
+!                                                   (W/m2)
+!                                      PSNOWMELT = Snow layer(s) melt content (mmwe)
+!                                      PSNOWMPH   = Snow layer(s) energy melt
+!                                                   (W/m2)
+!                                      PSNOWSWP = Snow layers(s) sw penetrative
+!                                                   (W/m2)
+!                                                
+!
+REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR, PSNOWSUBL
 !                                      PTHRUFAL  = rate that liquid water leaves snow pack:
 !                                                  paritioned into soil infiltration/runoff
 !                                                  by ISBA [kg/(m2 s)]
@@ -281,6 +294,8 @@ REAL, DIMENSION(:), INTENT(OUT)      :: PTHRUFAL, PGRNDFLUX, PEVAPCOR
 !                                                  actual snow cover (as snow vanishes)
 !                                                  and apply it as a surface soil water
 !                                                  sink. [kg/(m2 s)]
+!                                      PSNOWSUBL = amt sublimated top layer (m?)
+!
 ! ++ trude
 REAL, DIMENSION(:), INTENT(OUT)    :: FLOW_ICE,FLOW_SNOW
 ! -- trude
@@ -477,6 +492,7 @@ PLEL3L     = 0.
 PHPSNOW    = 0.
 PEVAPCOR   = 0.
 PTHRUFAL   = 0.
+PSNOWSUBL  = 0.
 !
 ! pour imprimer des diagnostics sur un des points
 IPRINT = 1
@@ -653,6 +669,11 @@ DO JJ = 1,SIZE(ZSNOW)
     PSNOWHEAT (JJ,JST) = 0.
     ZSNOWTEMP (JJ,JST) = XTT
     PSNOWLIQ  (JJ,JST) = 0.
+    PSNOWREFRZ(JJ,JST) = 0.
+    PSNOWRPH(JJ,JST) = 0.
+    PSNOWMELT(JJ,JST) = 0.
+    PSNOWMPH(JJ,JST) = 0.
+    PSNOWSWP(JJ,JST) = 0.
   ENDDO  !  end loop unactive snow layers
   !
 ENDDO    ! end loop grid points
@@ -771,7 +792,7 @@ SELECT CASE (HSNOWRAD)
                     PALB,ZRADSINK,ZRADXS,                 &
                     PSNOWGRAN1, PSNOWGRAN2, PSNOWAGE,PPS, &
                     PZENITH, PPERMSNOWFRAC,INLVLS_USE,    &
-                    OSNOW_ABS_ZENITH,HSNOWMETAMO,VIS_ICEALB)
+                    OSNOW_ABS_ZENITH,HSNOWMETAMO,VIS_ICEALB,PSNOWSWP)
 
   CASE ("TAR","TA1","TA2")
 !    CALL SNOWCRO_TARTES(PSNOWGRAN1,PSNOWGRAN2,PSNOWRHO,PSNOWDZ,ZSNOWG0,ZSNOWY0,ZSNOWW0, &
@@ -970,7 +991,7 @@ PGRNDFLUX(:) = PGRNDFLUX(:) + ZRADXS(:)
 ! For partial melt: transform excess heat content into snow liquid:
 !
 
- CALL SNOWCROMELT(ZSCAP,ZSNOWTEMP,PSNOWDZ,PSNOWRHO,PSNOWLIQ,INLVLS_USE)
+ CALL SNOWCROMELT(ZSCAP,ZSNOWTEMP,PSNOWDZ,PSNOWRHO,PSNOWLIQ,INLVLS_USE,PSNOWMELT,PSNOWMPH)
 
 !
 !***************************************DEBUG IN**********************************************
@@ -989,8 +1010,8 @@ PGRNDFLUX(:) = PGRNDFLUX(:) + ZRADXS(:)
 ! And refreezing/freezing of meltwater/rainfall (ripening of the snow)
 !
 
- CALL SNOWCROREFRZ(PTSTEP,PRR,PSNOWRHO,ZSNOWTEMP,PSNOWDZ,PSNOWLIQ,PTHRUFAL, &
-                   ZSCAP,PLEL3L,INLVLS_USE                                  )
+ CALL SNOWCROREFRZ(PTSTEP,PRR,PSNOWRHO,ZSNOWTEMP,PSNOWDZ,PSNOWLIQ,PSNOWREFRZ,PSNOWRPH, &
+                   PTHRUFAL,ZSCAP,PLEL3L,INLVLS_USE                              )
 
 ! ++ trude
 !Assign streamflow from ice versus snow for output (diagnostics)
@@ -1016,8 +1037,9 @@ ENDIF
 !
 
  CALL SNOWCROEVAPN(PLES3L,PTSTEP,ZSNOWTEMP(:,1),PSNOWRHO(:,1), &
-                   PSNOWDZ(:,1),PEVAPCOR,PSNOWHMASS            )
+                   PSNOWDZ(:,1),PEVAPCOR,PSNOWHMASS,PSNOWSUBL     )
 !
+PSNOWSUBL = PSNDRIFT
 !***************************************DEBUG IN**********************************************
 !IF (GCRODEBUGDETAILSPRINT) THEN
 !  CALL SNOWCROPRINTPROFILE("after SNOWCROEVAPN", INLVLS_USE(IDEBUG),LPRINTGRAN,             &
@@ -2192,7 +2214,7 @@ SUBROUTINE SNOWCRORAD(OGLACIER,                        &
                       PSNOWRHO, PALB, PRADSINK, PRADXS,        &
                       PSNOWGRAN1, PSNOWGRAN2, PSNOWAGE,PPS,    &
                       PZENITH, PPERMSNOWFRAC,KNLVLS_USE,       &
-                      OSNOW_ABS_ZENITH,HSNOWMETAMO,VIS_ICEALB)
+                      OSNOW_ABS_ZENITH,HSNOWMETAMO,VIS_ICEALB,PSNOWSWP)
 !
 !!    PURPOSE
 !!    -------
@@ -2233,6 +2255,8 @@ LOGICAL, INTENT(IN)                 :: OSNOW_ABS_ZENITH ! parametrization for po
 REAL, DIMENSION(:), INTENT(OUT)     :: PRADXS
 !
 REAL, DIMENSION(:,:), INTENT(OUT)   :: PRADSINK
+!
+REAL, DIMENSION(:,:), INTENT(INOUT) :: PSNOWSWP
 !
 REAL, DIMENSION(:,:), INTENT(IN)    :: PSNOWGRAN1, PSNOWGRAN2, PSNOWAGE
 REAL, DIMENSION(:), INTENT(IN)      :: PPS
@@ -2289,6 +2313,7 @@ DO JJ = 1,SIZE(PSW_RAD)
   ! in snow due to zenithal angle
   ZPROJLAT = 1. / MAX( XUEPSI, COS(PZENITH(JJ)) )
   !
+  !PRADSINK(JJ,:) = -900. * ( 1.-PSNOWALB(JJ) ) / ( 1.-ZALB_NEW(JJ) ) !TAMARA
   PRADSINK(JJ,:) = -PSW_RAD(JJ) * ( 1.-PSNOWALB(JJ) ) / ( 1.-ZALB_NEW(JJ) )
   !
   !   Initialize optical depth
@@ -2316,6 +2341,7 @@ DO JJ = 1,SIZE(PSW_RAD)
     PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
                        ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
+    PSNOWSWP = PRADSINK(JJ,JST)
   ENDDO    ! end loop snow layers
   !
   ! For thin snow packs, radiation might reach base of
@@ -2908,7 +2934,8 @@ END SUBROUTINE SNOWCROSOLVT
 !####################################################################
 !####################################################################
 SUBROUTINE SNOWCROMELT(PSCAP,PSNOWTEMP,PSNOWDZ,         &
-                       PSNOWRHO,PSNOWLIQ,KNLVLS_USE     )
+                       PSNOWRHO,PSNOWLIQ,KNLVLS_USE,    &
+                       PSNOWMELT,PSNOWMPH               )
 !
 !!    PURPOSE
 !!    -------
@@ -2931,7 +2958,7 @@ IMPLICIT NONE
 REAL, DIMENSION(:,:), INTENT(IN)    :: PSCAP
 !
 REAL, DIMENSION(:,:), INTENT(INOUT) :: PSNOWDZ, PSNOWTEMP, PSNOWRHO,   &
-                                          PSNOWLIQ
+                                          PSNOWLIQ,PSNOWMELT,PSNOWMPH
 !
 INTEGER, DIMENSION(:), INTENT(IN)   :: KNLVLS_USE
 !
@@ -2960,6 +2987,16 @@ DO JJ = 1,SIZE(PSNOWDZ,1)
    ENDDO
 ENDDO
 !
+!TAMARA
+!DO JJ=1,SIZE(PSNOWDZ,1)
+!  DO JST=1,6
+!    PSNOWRHO(JJ,JST) = 700.0
+!    PSNOWTEMP(JJ,JST) = 274.16
+!    PSNOWLIQ(JJ,JST) = 0.0
+!  ENDDO
+!ENDDO
+!TAMARA
+!
 ! 1. Determine amount of melt in each layer:
 ! ------------------------------------------
 !
@@ -2979,6 +3016,8 @@ DO JJ = 1,SIZE(PSNOWDZ,1)
      ! liquid water available for next layer from melting of snow
      ! which is assumed to be leaving the current layer (m):
      ZSNOWMELT(JJ,JST) = ZPHASE(JJ,JST) / (XLMTT*XRHOLW)
+     PSNOWMELT(JJ,JST) = ZSNOWMELT(JJ,JST)
+     PSNOWMPH(JJ,JST) = ZPHASE(JJ,JST)
      !
      ! Cool off snow layer temperature due to melt:
      ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST) - ZPHASE(JJ,JST) / (PSCAP(JJ,JST)*PSNOWDZ(JJ,JST))
@@ -3027,8 +3066,8 @@ END SUBROUTINE SNOWCROMELT
 !####################################################################
 !####################################################################
 SUBROUTINE SNOWCROREFRZ(PTSTEP,PRR,                            &
-                        PSNOWRHO,PSNOWTEMP,PSNOWDZ,PSNOWLIQ,   &
-                        PTHRUFAL, PSCAP, PLEL3L,KNLVLS_USE     )
+                        PSNOWRHO,PSNOWTEMP,PSNOWDZ,PSNOWLIQ,PSNOWREFRZ, &
+                        PSNOWRPH, PTHRUFAL, PSCAP, PLEL3L,KNLVLS_USE   )
 !
 !!    PURPOSE
 !!    -------
@@ -3055,6 +3094,8 @@ REAL, INTENT(IN)                      :: PTSTEP
 REAL, DIMENSION(:), INTENT(IN)        :: PRR
 !
 REAL, DIMENSION(:,:), INTENT(INOUT)   :: PSNOWDZ, PSNOWTEMP, PSNOWLIQ, PSNOWRHO
+!
+REAL, DIMENSION(:,:), INTENT(INOUT)   :: PSNOWREFRZ, PSNOWRPH
 !
 REAL, DIMENSION(:), INTENT(INOUT)     :: PTHRUFAL
 !
@@ -3135,7 +3176,12 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     ! Calculate the maximum possible refreezing
     ZPHASE(JJ,JST) = MIN( PSCAP(JJ,JST)* MAX(0.0, XTT - ZSNOWTEMP(JJ,JST)) * PSNOWDZ(JJ,JST), &
                           PSNOWLIQ(JJ,JST) * XLMTT * XRHOLW )
+    PSNOWRPH(JJ,JST) = ZPHASE(JJ,JST)
     !
+    ! Update PSNOWREFRZ with amount of water refrozen
+    PSNOWREFRZ(JJ,JST) = ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
+    !PSNOWREFPHASE(JJ,JST) = ZPHASE(JJ,JST) 
+    ! 
     ! Reduce liquid content if freezing occurs:
     ZSNOWLIQ(JJ,JST) = PSNOWLIQ(JJ,JST) - ZPHASE(JJ,JST)/(XLMTT*XRHOLW)
     !
@@ -3442,7 +3488,7 @@ END SUBROUTINE GET_FLUX
 !####################################################################
 !####################################################################
 SUBROUTINE SNOWCROEVAPN(PLES3L,PTSTEP,PSNOWTEMP,PSNOWRHO, &
-                       PSNOWDZ,PEVAPCOR,PSNOWHMASS        )
+                       PSNOWDZ,PEVAPCOR,PSNOWHMASS,PSNOWSUBL  )
 !
 !!    PURPOSE
 !!    -------
@@ -3471,7 +3517,7 @@ REAL, DIMENSION(:), INTENT(IN)      :: PSNOWTEMP
 REAL, DIMENSION(:), INTENT(IN)      :: PLES3L   ! (W/m2)
 !
 REAL, DIMENSION(:), INTENT(INOUT)   :: PSNOWRHO, PSNOWDZ, PSNOWHMASS, &
-                                        PEVAPCOR
+                                        PEVAPCOR,PSNOWSUBL
 !
 !*      0.2    declarations of local variables
 !
@@ -3514,6 +3560,7 @@ WHERE ( PSNOWDZ>0.0 )
   PSNOWDZ(:)    = MAX( 0.0, ZSNOWDZ(:) )
   ZEVAPCOR(:)   = ZEVAPCOR(:) + MAX(0.0,-ZSNOWDZ(:)) * PSNOWRHO(:) / PTSTEP
   !
+  PSNOWSUBL(:) = ZSNOWEVAPS(:)
   ! Total heat content change due to snowfall and sublimation (added here):
   ! (for budget calculations):
   !
