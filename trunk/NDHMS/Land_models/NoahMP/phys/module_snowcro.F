@@ -680,13 +680,13 @@ DO JJ = 1,SIZE(ZSNOW)
 ENDDO    ! end loop grid points
 !
 !TAMARA
-DO JJ=1,SIZE(PSNOWDZ,1)
-  DO JST=1,2
-    PSNOWRHO(JJ,JST) = 700.0
-    PSNOWTEMP(JJ,JST) = 274.16
-    PSNOWLIQ(JJ,JST) = 0.0
-  ENDDO
-ENDDO
+!DO JJ=1,SIZE(PSNOWDZ,1)
+!  DO JST=1,2
+!    PSNOWRHO(JJ,JST) = 700.0
+!    PSNOWTEMP(JJ,JST) = 274.16
+!    PSNOWLIQ(JJ,JST) = 0.0
+!  ENDDO
+!ENDDO
 !TAMARA
 !***************************************DEBUG IN**********************************************
 !IF (GCRODEBUGDETAILSPRINT) THEN
