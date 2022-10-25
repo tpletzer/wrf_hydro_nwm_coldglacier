@@ -641,6 +641,7 @@ ENDDO
 ! water portion of the snow from snow heat content:
 ! update some snow layers parameters after new discretization
 !
+!
 DO JJ = 1,SIZE(ZSNOW)
   !
   ! active layers
@@ -678,6 +679,15 @@ DO JJ = 1,SIZE(ZSNOW)
   !
 ENDDO    ! end loop grid points
 !
+!TAMARA
+DO JJ=1,SIZE(PSNOWDZ,1)
+  DO JST=1,2
+    PSNOWRHO(JJ,JST) = 700.0
+    PSNOWTEMP(JJ,JST) = 274.16
+    PSNOWLIQ(JJ,JST) = 0.0
+  ENDDO
+ENDDO
+!TAMARA
 !***************************************DEBUG IN**********************************************
 !IF (GCRODEBUGDETAILSPRINT) THEN
 !  CALL SNOWCROPRINTPROFILE("after liquid water/temperature diagnostic",                &
@@ -2341,7 +2351,7 @@ DO JJ = 1,SIZE(PSW_RAD)
     PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
                        ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
-    PSNOWSWP = PRADSINK(JJ,JST)
+    PSNOWSWP(JJ,JST) = PRADSINK(JJ,JST)
   ENDDO    ! end loop snow layers
   !
   ! For thin snow packs, radiation might reach base of
