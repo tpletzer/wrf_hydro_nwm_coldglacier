@@ -228,9 +228,9 @@ REAL, PARAMETER       :: XDSGRAIN_MAX = 2.796e-3 ! m
 !--------------------------------------------------------------------------------
 !
 REAL, PARAMETER :: XD1 = 1., XD2 = 3., XD3 = 4., XX = 99., &
-                   XVALB2 = .74, XVALB3 = 1.58, XVALB4 = .72, XVALB5 = .97, &
-                   XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 32.31, XVALB9 = .88, &
-                   XVALB10 = .200, XVALB11 = .72, XVALB12=0.70, XVDIOP1 = 2.3E-3, & 
+                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .94, XVALB5 = .65, &
+                   XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 20.9524, XVALB9 = .359016, &
+                   XVALB10 = .200, XVALB11 = .89, XVALB12=.4, XVDIOP1 = 2.3E-3, & 
                    XVRPRE1 = .5, XVRPRE2=1.5
 
 ! trude , test XVALB11 = 0.7 instead of 0.6
