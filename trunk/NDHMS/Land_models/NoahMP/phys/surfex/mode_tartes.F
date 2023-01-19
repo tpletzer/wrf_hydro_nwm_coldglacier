@@ -123,7 +123,7 @@ INTEGER :: IMAX_USE ! maximum number of layers over the domain
 !
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 !
-I!F (LHOOK) CALL DR_HOOK('TARTES',0,ZHOOK_HANDLE)
+!IF (LHOOK) CALL DR_HOOK('TARTES',0,ZHOOK_HANDLE)
 !
 ! Initialization
 PSNOWALB    = 0.
@@ -250,7 +250,7 @@ USE MODD_CONST_TARTES, ONLY: NPNBANDS,XPWAVELENGTHS,XPWAVELENGTHS_M,XREFICE_R,XR
                              XREFICE_NORM,XGINF,XCONST_C
 USE MODD_CSTS, ONLY: XPI, XRHOLI                           
 !
-USE MODI_ABOR1_SFX
+!USE MODI_ABOR1_SFX
 !
 IMPLICIT NONE                             
 !
