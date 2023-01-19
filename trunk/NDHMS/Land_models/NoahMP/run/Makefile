@@ -39,7 +39,9 @@ OBJS = \
 	../phys/module_snowcro.o\
 	../phys/surfex/mode_thermos.o\
 	../phys/surfex/modd_surf_atm.o\
-	../phys/surfex/modd_snow_metamo.o
+	../phys/surfex/modd_snow_metamo.o\
+        ../phys/surfex/mode_tartes.o\
+        ../phys/surfex/modd_const_tartes.o
 
 CMD = hrldas.exe
 all:	$(CMD)
