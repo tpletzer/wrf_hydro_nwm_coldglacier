@@ -2123,10 +2123,10 @@ DO JJ=1, SIZE(PALBEDOSC)
     ! depths of top layers
     ZMIN(JJ) = MIN( 1., PSNOWDZ(JJ)/XVD1 )
     ZMAX(JJ) = MAX( 0., (PSNOWDZ(JJ)-XVD1)/XVD2 )
-    ZFAC_TOP(JJ)  = 1.
-    ZFAC_BOT(JJ)  = 0.
-    !ZFAC_TOP(JJ) = XVW1 * ZMIN(JJ) + XVW2 * MIN( 1., ZMAX(JJ) )
-    !ZFAC_BOT(JJ) = XVW1 * ( 1. - ZMIN(JJ) ) + XVW2 * ( 1. - MIN( 1., ZMAX(JJ) ) )
+    !ZFAC_TOP(JJ)  = 1.
+    !ZFAC_BOT(JJ)  = 0.
+    ZFAC_TOP(JJ) = XVW1 * ZMIN(JJ) + XVW2 * MIN( 1., ZMAX(JJ) )
+    ZFAC_BOT(JJ) = XVW1 * ( 1. - ZMIN(JJ) ) + XVW2 * ( 1. - MIN( 1., ZMAX(JJ) ) )
     PSPECTRALALBEDO(JJ,1) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,1) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,1)
     PSPECTRALALBEDO(JJ,2) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,2) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,2)
     PSPECTRALALBEDO(JJ,3) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,3) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,3)
@@ -2280,6 +2280,7 @@ REAL, DIMENSION(:), INTENT(IN)      :: PZENITH
 !
 REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZRADTOT
 REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZALB_NEW
+REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZDEPTH !accum depth over layers dz
 REAL, DIMENSION(SIZE(PSNOWRHO,1),3)  :: ZALB !albedo 3 bands
 REAL, DIMENSION(SIZE(PSNOWRHO,2))    :: ZDIAM
 REAL, DIMENSION(SIZE(PSNOWRHO,2),3)  :: ZBETA
@@ -2299,6 +2300,7 @@ REAL, DIMENSION(:), INTENT(IN), OPTIONAL   :: VIS_ICEALB   !-- trude!
 ! ------------------
 !
 PRADSINK(:,:) = 0.
+ZDEPTH(:) = 0.
 !
 ! 1. Computation of the new albedo (see SNOWCROALB):
 ! -----------------------------------
@@ -2351,8 +2353,10 @@ DO JJ = 1,SIZE(PSW_RAD)
       ENDIF
     ENDDO
     !
-    PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
-                       ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
+    ZDEPTH(JJ) = ZDEPTH(JJ) + PSNOWDZ(JJ,JST)
+    PRADSINK(JJ,JST) = -PSW_RAD(JJ) * (1.-ZALB_NEW(JJ)) * 0.36 * EXP(-17.1 * ZDEPTH(JJ)) !hoff swp 
+    !PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
+    !                   ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
     PSNOWSWP(JJ,JST) = PRADSINK(JJ,JST)
   ENDDO    ! end loop snow layers
