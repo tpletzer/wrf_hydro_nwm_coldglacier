@@ -398,7 +398,8 @@ REAL, DIMENSION(SIZE(PSNOWRHO,1),3) :: ZSPECTRALALBEDO
 ! end trude
 !
 
-
+REAL, DIMENSION(SIZE(PALB))          :: ZALB_T
+!                                      ZALB_T = soil/vegetation albedo PALB loc
 !
 REAL, DIMENSION(SIZE(PTA))          :: ZSNOWBIS
 !                                     ZSNOWBIS      = Total snow depth after snowfall
@@ -795,6 +796,8 @@ ENDDO    ! end loop grid points
 ! Heat source (-sink) term due to shortwave
 ! radiation transmission within the snowpack:
 !
+ZALB_T(:) = 1E-1
+!
 SELECT CASE (HSNOWRAD)
   CASE ("TA1")
     ZSNOWIMP_CONTENT(:,:,1) = 0.0
@@ -817,7 +820,7 @@ SELECT CASE (HSNOWRAD)
 
   CASE ("TAR","TA1","TA2")
     CALL SNOWCRO_TARTES(PSNOWGRAN1,PSNOWGRAN2,PSNOWRHO,PSNOWDZ,ZSNOWG0,ZSNOWY0,ZSNOWW0, &
-                        ZSNOWB0,ZSNOWIMP_DENSITY,ZSNOWIMP_CONTENT,PALB,PSW_RAD,PZENITH, &
+                        ZSNOWB0,ZSNOWIMP_DENSITY,ZSNOWIMP_CONTENT,ZALB_T,PSW_RAD,PZENITH, &
                         INLVLS_USE,PSNOWALB,ZRADSINK,ZRADXS,HSNOWMETAMO)
   !
   CASE DEFAULT

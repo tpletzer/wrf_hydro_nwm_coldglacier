@@ -1492,65 +1492,67 @@ END DO
     ! However, we let the comment code because it might happen again.
     
 !     
-!     DO JB=1,NPNBANDS
-!       ! maximum available energy at this wavelength
-!       ZMAX=ZSW_RAD_DIF(:,JB)*PP_MUDIFF+ZSW_RAD_DIR(:,JB)*COS(PZENITH)
-!       ZSNOWENERGY_CUM(:)=0.
-!       DO JL=1,SIZE(PSNOWRHO,2)
-!         DO JJ=1,SIZE(PSNOWRHO,1)        
-!           IF (JL<=KNLVLS_USE(JJ)) THEN
-!             ZSNOWENERGY_UPPER(JJ)=ZSNOWENERGY_CUM(JJ) !0 for surface layer
-!             ! absorbed energy cumulated from the surface
-!             ZSNOWENERGY_CUM(JJ)=ZSNOWENERGY_CUM(JJ)+ZSNOWENERGY(JJ,JL,JB)
-!             
-!             ! Case when the energy is negative but close to 0. It can occurs in short wavelengths. Force to 0.
-!             IF ((ZSNOWENERGY(JJ,JL,JB)<0).AND. (ZSNOWENERGY(JJ,JL,JB)>-0.1)) THEN
-!               ZSNOWENERGY(JJ,JL,JB)=0.
-!             END IF
-!             
-!             !if the cumulated absorbed energy excess the available energy or if severe negative energy, numerical problem in Tartes : total absorption
-!             IF ((ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)).OR.(ZSNOWENERGY(JJ,JL,JB)<=-0.1)) THEN
-! !               IF (PPWAVELENGTHS(JB)<=1000) THEN             
-!               IF ((PPWAVELENGTHS(JB)<=1000) .AND.(ABS(ZSNOWENERGY_CUM(JJ)-ZMAX(JJ))>0.01)) THEN 
-!                 ! Tolerance 0.01 W/m2 of excess energy in the visible
-!                 ! Above, the problem should never happen in visible
-!                 
-!                 PRINT*,"JB=",JB,"JL=",JL
-!                 IF (ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)) PRINT*,"excess energy"
-!                 IF (ZSNOWENERGY(JJ,JL,JB)<0) PRINT*, "negative energy"
-! 
-!                 PRINT*,ZSW_RAD_DIF(JJ,JB),ZSW_RAD_DIR(JJ,JB),ZMAX(JJ),ZSNOWENERGY_CUM(JJ)
-!                 
-!                 PRINT*,"profile :",ZSNOWENERGY(JJ,:,JB)
-!                 
-!                 STOP "FATAL ERROR TARTES !!"
-!               END IF
-!               ! The layer absorbes all the remaining energy at this wavelength
-!               ZSNOWENERGY(JJ,JL,JB)=ZMAX(JJ)-ZSNOWENERGY_UPPER(JJ)
-!               ! update cumulated energy
-!               ZSNOWENERGY_CUM(JJ)=ZMAX(JJ)
-!             END IF
-!           END IF
-!         END DO
-!       END DO
-!       
-!       ! Threshold on soil absorbed energy
-!       DO JJ=1,SIZE(PSNOWRHO,1)
-!         ZSNOWENERGY_UPPER(JJ)=ZSNOWENERGY_CUM(JJ)
-!         ZSNOWENERGY_CUM(JJ)=ZSNOWENERGY_CUM(JJ)+ZSOILENERGY(JJ,JB)
-!         IF (ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)) THEN
-!           IF (PPWAVELENGTHS(JB)<=1200) THEN
-!                  STOP "FATAL ERROR TARTES (soil excess energy in visible)!!"           
-!           END IF
-!           ! The layer absorbes all the remaining energy at this wavelength
-!           ZSOILENERGY(JJ,JB)=ZMAX(JJ)-ZSNOWENERGY_UPPER(JJ)
-!         END IF
-!       END DO
-!       
-!     END DO
-
-    ! End modif ML
-    ! --------------------------------------------------------------------------------------------------------------------
+!DO JB=1,NPNBANDS
+!  ! maximum available energy at this wavelength
+!  ZMAX=ZSW_RAD_DIF(:,JB)*PP_MUDIFF+ZSW_RAD_DIR(:,JB)*COS(PZENITH)
+!  ZSNOWENERGY_CUM(:)=0.
+!  DO JL=1,SIZE(PSNOWRHO,2)
+!    DO JJ=1,SIZE(PSNOWRHO,1)        
+!      IF (JL<=KNLVLS_USE(JJ)) THEN
+!        ZSNOWENERGY_UPPER(JJ)=ZSNOWENERGY_CUM(JJ) !0 for surface layer
+!        ! absorbed energy cumulated from the surface
+!        ZSNOWENERGY_CUM(JJ)=ZSNOWENERGY_CUM(JJ)+ZSNOWENERGY(JJ,JL,JB)
+!        
+!        ! Case when the energy is negative but close to 0. It can occurs in
+!        ! short wavelengths. Force to 0.
+!        IF ((ZSNOWENERGY(JJ,JL,JB)<0).AND. (ZSNOWENERGY(JJ,JL,JB)>-0.1)) THEN
+!          ZSNOWENERGY(JJ,JL,JB)=0.
+!        END IF
+!        
+!        !if the cumulated absorbed energy excess the available energy or if
+!        !severe negative energy, numerical problem in Tartes : total absorption
+!        IF ((ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)).OR.(ZSNOWENERGY(JJ,JL,JB)<=-0.1)) THEN
+!               IF (PPWAVELENGTHS(JB)<=1000) THEN             
+!          IF ((PPWAVELENGTHS(JB)<=1000).AND.(ABS(ZSNOWENERGY_CUM(JJ)-ZMAX(JJ))>0.01)) THEN 
+!            ! Tolerance 0.01 W/m2 of excess energy in the visible
+!            ! Above, the problem should never happen in visible
+!            
+!            PRINT*,"JB=",JB,"JL=",JL
+!            IF (ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)) PRINT*,"excess energy"
+!            IF (ZSNOWENERGY(JJ,JL,JB)<0) PRINT*, "negative energy"
+!
+!            PRINT*,ZSW_RAD_DIF(JJ,JB),ZSW_RAD_DIR(JJ,JB),ZMAX(JJ),ZSNOWENERGY_CUM(JJ)
+!            
+!            PRINT*,"profile :",ZSNOWENERGY(JJ,:,JB)
+!            
+!            STOP "FATAL ERROR TARTES !!"
+!          END IF
+!          ! The layer absorbes all the remaining energy at this wavelength
+!          ZSNOWENERGY(JJ,JL,JB)=ZMAX(JJ)-ZSNOWENERGY_UPPER(JJ)
+!          ! update cumulated energy
+!          ZSNOWENERGY_CUM(JJ)=ZMAX(JJ)
+!        END IF
+!      END IF
+!    END DO
+!  END DO
+!  
+!  ! Threshold on soil absorbed energy
+!  DO JJ=1,SIZE(PSNOWRHO,1)
+!    ZSNOWENERGY_UPPER(JJ)=ZSNOWENERGY_CUM(JJ)
+!    ZSNOWENERGY_CUM(JJ)=ZSNOWENERGY_CUM(JJ)+ZSOILENERGY(JJ,JB)
+!    IF (ZSNOWENERGY_CUM(JJ)>ZMAX(JJ)) THEN
+!      IF (PPWAVELENGTHS(JB)<=1200) THEN
+!             STOP "FATAL ERROR TARTES (soil excess energy in visible)!!"           
+!      END IF
+!      ! The layer absorbes all the remaining energy at this wavelength
+!      ZSOILENERGY(JJ,JB)=ZMAX(JJ)-ZSNOWENERGY_UPPER(JJ)
+!    END IF
+!  END DO
+!  
+!END DO
+!
+!    ! End modif ML
+!    ! --------------------------------------------------------------------------------------------------------------------
 !    
 ! Broadband absorbed energy by snowpack and soil
 ZSNOWENERGY_BB = 0.

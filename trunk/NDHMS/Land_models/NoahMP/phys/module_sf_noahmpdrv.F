@@ -637,8 +637,8 @@ CONTAINS
        OSNOW_ABS_ZENITH = .false.
        HSNOWMETAMO = 'B92'
        !      HSNOWMETAMO = 'C13'
-       HSNOWRAD         = 'B92'
-       !     HSNOWRAD         = 'TAR2'
+       !      HSNOWRAD         = 'B92'
+       HSNOWRAD         = 'TAR'
     else
        allocate(ZP_SNOWDZ   (1,1)) ! This is allocated to avoid SEGFAULT when crocus_opt=0 and
        ZP_SNOWDZ = 0.0             ! optimization is off
