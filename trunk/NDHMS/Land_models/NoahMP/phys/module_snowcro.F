@@ -2354,9 +2354,9 @@ DO JJ = 1,SIZE(PSW_RAD)
     ENDDO
     !
     ZDEPTH(JJ) = ZDEPTH(JJ) + PSNOWDZ(JJ,JST)
-    PRADSINK(JJ,JST) = -PSW_RAD(JJ) * (1.-ZALB_NEW(JJ)) * 0.36 * EXP(-17.1 * ZDEPTH(JJ)) !hoff swp 
-    !PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
-    !                   ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
+    !PRADSINK(JJ,JST) = -PSW_RAD(JJ) * (1.-ZALB_NEW(JJ)) * 0.36 * EXP(-17.1 * ZDEPTH(JJ)) !hoff swp 
+    PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
+                       ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
     PSNOWSWP(JJ,JST) = PRADSINK(JJ,JST)
   ENDDO    ! end loop snow layers
