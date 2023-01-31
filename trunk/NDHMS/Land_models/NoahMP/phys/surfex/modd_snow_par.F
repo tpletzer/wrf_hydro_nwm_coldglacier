@@ -51,8 +51,8 @@ REAL, PARAMETER       :: XEMISSN = 0.99   ! trude. Check  how this stands up to 
 !
 !REAL, SAVE       :: XANSMIN
 !REAL, SAVE       :: XANSMAX 
-REAL, PARAMETER     :: XANSMIN=0.5    ! (orig 0.50, trude test with 0.55 (0.6)) !tam 0.65  ! trude 0.5
-REAL, PARAMETER     :: XANSMAX =0.85  !trude 0.85
+REAL, PARAMETER     :: XANSMIN=0.58    ! (orig 0.50, trude test with 0.55 (0.6)) !tam 0.65  ! trude 0.5
+REAL, PARAMETER     :: XANSMAX =0.95  !trude 0.85
 
 
 !
@@ -228,9 +228,9 @@ REAL, PARAMETER       :: XDSGRAIN_MAX = 2.796e-3 ! m
 !--------------------------------------------------------------------------------
 !
 REAL, PARAMETER :: XD1 = 1., XD2 = 3., XD3 = 4., XX = 99., &
-                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .94, XVALB5 = .9, &
-                   XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 27., XVALB9 = .61, &
-                   XVALB10 = .200, XVALB11 = .71, XVALB12=.31, XVDIOP1 = 2.3E-3, & 
+                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .94, XVALB5 = .66, &
+                   XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 21., XVALB9 = .35, &
+                   XVALB10 = .200, XVALB11 = .89, XVALB12=.31, XVDIOP1 = 2.3E-3, & 
                    XVRPRE1 = .5, XVRPRE2=1.5
 
 ! trude , test XVALB11 = 0.7 instead of 0.6

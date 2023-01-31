@@ -3224,7 +3224,7 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ! If ice, all liq water in layer runsoff and zsnowliq->0, zflowliq->0 
     IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
-      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST)
+      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST) * XRHOLW / PTSTEP
       ZFLOWLIQ(JJ,JST) = 0.
     ENDIF !TAMARA
     !
