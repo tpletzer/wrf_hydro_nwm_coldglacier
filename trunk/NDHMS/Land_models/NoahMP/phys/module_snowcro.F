@@ -3160,7 +3160,7 @@ DO JJ=1,SIZE(PSNOWDZ,1)
     ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST)
     ZWHOLDMAX(JJ,JST) = SNOWCROHOLD( PSNOWRHO(JJ,JST),PSNOWLIQ(JJ,JST),PSNOWDZ(JJ,JST) )
 ! trude test with not allowing liquid if psnowrho >  XRHOTHRESHOLD_ICE  (i.e. no liquid in ice)
-!    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0. !TAMARA
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0. !TAMARA
 ! end trude test
 
   ENDDO
@@ -3223,20 +3223,20 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     ZSNOWLIQ(JJ,JST) = ZSNOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST)
     !
     ! If ice, all liq water in layer runsoff and zsnowliq->0, zflowliq->0 
-    !IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
-    !  PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST) * XRHOLW / PTSTEP
-    !  ZFLOWLIQ(JJ,JST) = 0.
-    !ENDIF !TAMARA
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST) * XRHOLW / PTSTEP
+      ZFLOWLIQ(JJ,JST) = 0.
+    ENDIF !TAMARA
     !
     ! 5. Density is adjusted to conserve the mass
     !    --------------------------------------------------------------
     
     ZNUMER = ( ZSNOWRHO(JJ,JST) * PSNOWDZ(JJ,JST) - ( ZFLOWLIQ(JJ,JST) - ZFLOWLIQ(JJ,JST-1) ) * XRHOLW )
     !
-    !IF (PSNOWRHO(JJ,JST).LT.XRHOTHRESHOLD_ICE) THEN !TAMARA
-    !  ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
-    !ENDIF !TAMARA
-    ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    IF (PSNOWRHO(JJ,JST).LT.XRHOTHRESHOLD_ICE) THEN !TAMARA
+      ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
+    ENDIF !TAMARA
+    !ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
     !
     ! keeps snow denisty below ice density
     IF ( ZSNOWRHO(JJ,JST)>XRHOLI ) THEN
