@@ -51,8 +51,8 @@ REAL, PARAMETER       :: XEMISSN = 0.99   ! trude. Check  how this stands up to 
 !
 !REAL, SAVE       :: XANSMIN
 !REAL, SAVE       :: XANSMAX 
-REAL, PARAMETER     :: XANSMIN=0.5    ! (orig 0.50, trude test with 0.55 (0.6)) !tam 0.65  ! trude 0.5
-REAL, PARAMETER     :: XANSMAX =0.85  !trude 0.85
+REAL, PARAMETER     :: XANSMIN=0.58    ! (orig 0.50, trude test with 0.55 (0.6)) !tam 0.65  ! trude 0.5
+REAL, PARAMETER     :: XANSMAX =0.95  !trude 0.85
 
 
 !
@@ -83,16 +83,16 @@ REAL, SAVE       :: XANSMINMEB
 ! 
 ! Prescribed ice albedo in 3 spectral bands for glacier simulation with CROCUS scheme.
 !REAL, SAVE       :: XALBICE1,XALBICE2,XALBICE3
-!REAL, PARAMETER       :: XALBICE1 = 0.23   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude 
-!REAL, PARAMETER       :: XALBICE2 = 0.15   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
-!REAL, PARAMETER       :: XALBICE3 = 0.06  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
-REAL, PARAMETER       :: XALBICE1 = 0.60   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude !TAMARA 0.6 0.68
-REAL, PARAMETER       :: XALBICE2 = 0.36   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude !TAMARA 0.36 0.45
-REAL, PARAMETER       :: XALBICE3 = 0.08  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude !TAMARA 0.08 0.08
+REAL, PARAMETER       :: XALBICE1 = 0.23   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude 
+REAL, PARAMETER       :: XALBICE2 = 0.15   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
+REAL, PARAMETER       :: XALBICE3 = 0.06  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
+!REAL, PARAMETER       :: XALBICE1 = 0.7   ! (0.23 from Gerbaux,  0.38 orig crocus)   !TAMARA based off Dadic 2013 and obs
+!REAL, PARAMETER       :: XALBICE2 = 0.3   ! (0.15 from Gerbaux,  0.23  orig crocus)  !TAMARA 
+!REAL, PARAMETER       :: XALBICE3 = 0.05  ! 0.06 from Gerbaux ,   0.08 orig crocus   !TAMARA 
 
-!REAL, PARAMETER       :: XALBICE1 = 0.67   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude test snowalbedo instead
-!REAL, PARAMETER       :: XALBICE2 = 0.67   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
-!REAL, PARAMETER       :: XALBICE3 = 0.67  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
+!REAL, PARAMETER       :: XALBICE1 = 0.68   ! (0.23 from Gerbaux,  0.38 orig crocus)     ! trude test snowalbedo instead
+!REAL, PARAMETER       :: XALBICE2 = 0.45   ! (0.15 from Gerbaux,  0.23  orig crocus)  ! trude
+!REAL, PARAMETER       :: XALBICE3 = 0.08  ! 0.06 from Gerbaux ,   0.08 orig crocus     ! trude
 
 !
 
@@ -227,12 +227,16 @@ REAL, PARAMETER       :: XDSGRAIN_MAX = 2.796e-3 ! m
 ! Calibration coefficients for CROCUS and ES albedo computation
 !--------------------------------------------------------------------------------
 !
-REAL, PARAMETER :: XD1 = 1., XD2 = 3., XD3 = 4., XX = 99., &
-                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .92, XVALB5 = .90, &
+REAL, PARAMETER :: XD1 = 1., XD2 = 3., XD3 = 4., XX = 99., & !original params
+                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .92, XVALB5 = .9, &
                    XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 32.31, XVALB9 = .88, &
-                   XVALB10 = .200, XVALB11 = .65, XVDIOP1 = 2.3E-3, XVRPRE1 = .5, &
-                   XVRPRE2=1.5
-
+                   XVALB10 = .200, XVALB11 = .65, XVALB12=.3, XVDIOP1 = 2.3E-3, & 
+                   XVRPRE1 = .5, XVRPRE2=1.5
+!REAL, PARAMETER :: XD1 = 1., XD2 = 3., XD3 = 4., XX = 99., & !TAMARA new params
+!                   XVALB2 = .96, XVALB3 = 1.58, XVALB4 = .94, XVALB5 = .66, &
+!                   XVALB6 = 15.4, XVALB7 = 346.3, XVALB8 = 21., XVALB9 = .35, &
+!                   XVALB10 = .200, XVALB11 = .89, XVALB12=.31, XVDIOP1 = 2.3E-3, &
+!                   XVRPRE1 = .5, XVRPRE2=1.5
 ! trude , test XVALB11 = 0.7 instead of 0.6
 ! trude , test XVALB11 = 0.65 instead of 0.6
 

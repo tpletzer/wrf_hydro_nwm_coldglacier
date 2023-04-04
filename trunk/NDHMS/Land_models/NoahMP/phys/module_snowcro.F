@@ -2123,6 +2123,8 @@ DO JJ=1, SIZE(PALBEDOSC)
     ! depths of top layers
     ZMIN(JJ) = MIN( 1., PSNOWDZ(JJ)/XVD1 )
     ZMAX(JJ) = MAX( 0., (PSNOWDZ(JJ)-XVD1)/XVD2 )
+    !ZFAC_TOP(JJ)  = 1.
+    !ZFAC_BOT(JJ)  = 0.
     ZFAC_TOP(JJ) = XVW1 * ZMIN(JJ) + XVW2 * MIN( 1., ZMAX(JJ) )
     ZFAC_BOT(JJ) = XVW1 * ( 1. - ZMIN(JJ) ) + XVW2 * ( 1. - MIN( 1., ZMAX(JJ) ) )
     PSPECTRALALBEDO(JJ,1) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,1) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,1)
@@ -2152,7 +2154,7 @@ USE MODD_SNOW_PAR, ONLY : XALBICE1, XALBICE2, XALBICE3,   &
 !                          XRHOTHRESHOLD_ICE,              &   ! trude changed location of xrhothershold_ice
                           XVALB2, XVALB3, XVALB4, XVALB5, &
                           XVALB6, XVALB7, XVALB8, XVALB9, &
-                          XVALB10, XVALB11, XVDIOP1,      &
+                          XVALB10, XVALB11, XVALB12, XVDIOP1, &
                           XVRPRE1, XVRPRE2, XVPRES1
 !
 USE MODE_SNOW3L, ONLY : GET_DIAM
@@ -2184,7 +2186,7 @@ IF ( PSNOWRHO_IN<XRHOTHRESHOLD_ICE ) THEN
   CALL GET_DIAM(PSNOWGRAN1,PSNOWGRAN2,ZDIAM,HSNOWMETAMO)
   ZDIAM_SQRT = SQRT(ZDIAM)
   PALB(1) = MIN( XVALB2 - XVALB3*ZDIAM_SQRT, XVALB4 )
-  PALB(2) = MAX( 0.3, XVALB5 - XVALB6*ZDIAM_SQRT )
+  PALB(2) = MAX( XVALB12, XVALB5 - XVALB6*ZDIAM_SQRT )
   ZDIAM   = MIN( ZDIAM, XVDIOP1 )
   ZDIAM_SQRT = SQRT(ZDIAM)
   PALB(3) = MAX( 0., XVALB7*ZDIAM - XVALB8*ZDIAM_SQRT + XVALB9 )
@@ -2278,6 +2280,7 @@ REAL, DIMENSION(:), INTENT(IN)      :: PZENITH
 !
 REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZRADTOT
 REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZALB_NEW
+REAL, DIMENSION(SIZE(PSNOWRHO,1))    :: ZDEPTH !accum depth over layers dz
 REAL, DIMENSION(SIZE(PSNOWRHO,1),3)  :: ZALB !albedo 3 bands
 REAL, DIMENSION(SIZE(PSNOWRHO,2))    :: ZDIAM
 REAL, DIMENSION(SIZE(PSNOWRHO,2),3)  :: ZBETA
@@ -2297,6 +2300,7 @@ REAL, DIMENSION(:), INTENT(IN), OPTIONAL   :: VIS_ICEALB   !-- trude!
 ! ------------------
 !
 PRADSINK(:,:) = 0.
+ZDEPTH(:) = 0.
 !
 ! 1. Computation of the new albedo (see SNOWCROALB):
 ! -----------------------------------
@@ -2349,6 +2353,8 @@ DO JJ = 1,SIZE(PSW_RAD)
       ENDIF
     ENDDO
     !
+    ZDEPTH(JJ) = ZDEPTH(JJ) + PSNOWDZ(JJ,JST)
+    !PRADSINK(JJ,JST) = -PSW_RAD(JJ) * (1.-ZALB_NEW(JJ)) * 0.36 * EXP(-17.1 * ZDEPTH(JJ)) !hoff swp 
     PRADSINK(JJ,JST) = PRADSINK(JJ,JST) * &
                        ( XVSPEC1*ZFACT(1) + XVSPEC2*ZFACT(2) + XVSPEC3*ZFACT(3) )
     !
@@ -3154,7 +3160,7 @@ DO JJ=1,SIZE(PSNOWDZ,1)
     ZSNOWTEMP(JJ,JST) = PSNOWTEMP(JJ,JST)
     ZWHOLDMAX(JJ,JST) = SNOWCROHOLD( PSNOWRHO(JJ,JST),PSNOWLIQ(JJ,JST),PSNOWDZ(JJ,JST) )
 ! trude test with not allowing liquid if psnowrho >  XRHOTHRESHOLD_ICE  (i.e. no liquid in ice)
-    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0.
+    IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) ZWHOLDMAX(JJ,JST) = 0. !TAMARA
 ! end trude test
 
   ENDDO
@@ -3218,7 +3224,7 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     !
     ! If ice, all liq water in layer runsoff and zsnowliq->0, zflowliq->0 
     IF (PSNOWRHO(JJ,JST).GT.XRHOTHRESHOLD_ICE) THEN !TAMARA
-      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST)
+      PTHRUFAL(JJ) = PTHRUFAL(JJ) + ZFLOWLIQ(JJ,JST) * XRHOLW / PTSTEP
       ZFLOWLIQ(JJ,JST) = 0.
     ENDIF !TAMARA
     !
@@ -3230,6 +3236,7 @@ DO JJ = 1,SIZE(PSNOWDZ,1)  ! loop JJ grid points
     IF (PSNOWRHO(JJ,JST).LT.XRHOTHRESHOLD_ICE) THEN !TAMARA
       ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
     ENDIF !TAMARA
+    !ZSNOWRHO(JJ,JST) = ZNUMER / ZSNOWDZ(JJ,JST)
     !
     ! keeps snow denisty below ice density
     IF ( ZSNOWRHO(JJ,JST)>XRHOLI ) THEN
