@@ -1086,7 +1086,7 @@ IF ( HSNOWRAD=='B92' ) THEN
 
 
   CALL SNOWCROALB(OGLACIER,                                             &
-                  PSNOWALB,ZSPECTRALALBEDO,PSNOWDZ(:,1),PSNOWRHO(:,1:2),       &
+                  PSNOWALB,ZSPECTRALALBEDO,PSNOWDZ(:,1:2),PSNOWRHO(:,1:2),       &
                   PPERMSNOWFRAC,PSNOWGRAN1(:,1),PSNOWGRAN2(:,1),               &
                   PSNOWAGE(:,1),PSNOWGRAN1(:,2),PSNOWGRAN2(:,2),PSNOWAGE(:,2), &
                   PPS, PZENITH, INLVLS_USE, HSNOWMETAMO,VIS_ICEALB)
@@ -2003,7 +2003,8 @@ SUBROUTINE SNOWCROALB(OGLACIER,                            &
 USE MODD_SNOW_PAR, ONLY : XANSMAX, XANSMIN,XAGLAMIN, XAGLAMAX, &
                           XVRPRE1,XVRPRE2,XVAGING_NOGLACIER,   &
                           XVAGING_GLACIER, XVSPEC1,XVSPEC2,    &
-                          XVSPEC3, XVW1,XVW2,XVD1,XVD2
+                          XVSPEC3, XVW1,XVW2,XVD1,XVD2,        &
+                          XALBICE1, XALBICE2, XALBICE3
 
 !USE MODI_INI_CSTS, ONLY: XANSMAX, XANSMIN,XAGLAMIN, XAGLAMAX, &
 !                       XVAGING_NOGLACIER,   &
@@ -2025,9 +2026,10 @@ LOGICAL, INTENT(IN)               :: OGLACIER    ! True = Over permanent snow an
 !                                                   initialise WGI=WSAT,
 !                                                   Hsnow>=10m and allow 0.8<SNOALB<0.85
                                                  ! False = No specific treatment
-REAL, DIMENSION(:), INTENT(IN)    :: PSNOWDZ,PPERMSNOWFRAC
+!REAL, DIMENSION(:), INTENT(IN)    :: PSNOWDZ,PPERMSNOWFRAC
+REAL, DIMENSION(:), INTENT(IN)    :: PPERMSNOWFRAC
 !
-REAL,DIMENSION(:,:), INTENT(IN)   :: PSNOWRHO ! For now only the 2 first layers are required
+REAL,DIMENSION(:,:), INTENT(IN)   :: PSNOWRHO,PSNOWDZ ! For now only the 2 first layers are required
 !
 REAL, DIMENSION(:), INTENT(INOUT) :: PALBEDOSC
 !
@@ -2049,6 +2051,9 @@ REAL, DIMENSION(SIZE(PSNOWRHO,1))   :: ZANSMIN, ZANSMAX, ZMIN, ZMAX
 REAL, DIMENSION(SIZE(PSNOWRHO,1))   :: ZFAC_TOP, ZFAC_BOT
 !
 REAL, DIMENSION(SIZE(PALBEDOSC))  :: ZVAGE1
+!
+REAL, DIMENSION(SIZE(PSNOWRHO,1)) :: HSNOW_TOT, FNEIGE
+REAL, DIMENSION(SIZE(PSNOWRHO,1),2) :: HSNOW
 !
 !REAL            :: ZAGE_NOW
 !
@@ -2121,8 +2126,8 @@ DO JJ=1, SIZE(PALBEDOSC)
     !
     ! computation of spectral albedo over 3 bands taking into account the respective
     ! depths of top layers
-    ZMIN(JJ) = MIN( 1., PSNOWDZ(JJ)/XVD1 )
-    ZMAX(JJ) = MAX( 0., (PSNOWDZ(JJ)-XVD1)/XVD2 )
+    ZMIN(JJ) = MIN( 1., PSNOWDZ(JJ,1)/XVD1 )
+    ZMAX(JJ) = MAX( 0., (PSNOWDZ(JJ,1)-XVD1)/XVD2 )
     !ZFAC_TOP(JJ)  = 1.
     !ZFAC_BOT(JJ)  = 0.
     ZFAC_TOP(JJ) = XVW1 * ZMIN(JJ) + XVW2 * MIN( 1., ZMAX(JJ) )
@@ -2131,6 +2136,35 @@ DO JJ=1, SIZE(PALBEDOSC)
     PSPECTRALALBEDO(JJ,2) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,2) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,2)
     PSPECTRALALBEDO(JJ,3) = ZFAC_TOP(JJ) * ZALB_TOP(JJ,3) + ZFAC_BOT(JJ) * ZALB_BOT(JJ,3)
     !
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! On implemente la fonction neige
+    ! 1 On calcule la H de neige sur la glace
+     DO JST=1,SIZE(PSNOWRHO(:,:),2)
+      !
+       IF ( PSNOWRHO(JJ,JST)<XRHOTHRESHOLD_ICE )  THEN 
+        ! Si d'après le seuil de densité la couche est en neige, on la garde
+        HSNOW(JJ,JST) = PSNOWDZ(JJ,JST)
+       ELSE
+        ! Sinon on est à 0
+        HSNOW(JJ,JST) = 0.
+       ENDIF
+     ENDDO
+    !
+    HSNOW_TOT(JJ) = SUM(HSNOW(JJ,1:JST))
+    !
+    !
+    ! 2 On implement la fonction pour calculer la fraction de neige
+    FNEIGE(JJ) = MIN(1.,(HSNOW_TOT(JJ)/0.07)**0.43)
+    !
+    !
+    ! 3 On recalcul les PSPECTRALALBEDO avec cette fonction qui tient compte de
+    ! la glace
+    PSPECTRALALBEDO(JJ,1) = FNEIGE(JJ)*PSPECTRALALBEDO(JJ,1)+(1-FNEIGE(JJ))*XALBICE1
+    PSPECTRALALBEDO(JJ,2) = FNEIGE(JJ)*PSPECTRALALBEDO(JJ,2)+(1-FNEIGE(JJ))*XALBICE2
+    PSPECTRALALBEDO(JJ,3) = FNEIGE(JJ)*PSPECTRALALBEDO(JJ,3)+(1-FNEIGE(JJ))*XALBICE3
+    !
+    ! Et voila si il n'y a pas trop de betises....
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! arbitrarily specified spectral distribution
     ! to be changed when solar radiation distribution is an input variable
     PALBEDOSC(JJ) = XVSPEC1 * PSPECTRALALBEDO(JJ,1) + &
@@ -2307,7 +2341,7 @@ ZDEPTH(:) = 0.
 !
 ! CALL SNOWCROALB(TPTIME,OGLACIER,                                             &
 CALL SNOWCROALB(OGLACIER,                                             &
-                 ZALB_NEW,ZALB,PSNOWDZ(:,1),PSNOWRHO(:,1:2),                  &
+                 ZALB_NEW,ZALB,PSNOWDZ(:,1:2),PSNOWRHO(:,1:2),                  &
                  PPERMSNOWFRAC,PSNOWGRAN1(:,1),PSNOWGRAN2(:,1),               &
                  PSNOWAGE(:,1),PSNOWGRAN1(:,2),PSNOWGRAN2(:,2),PSNOWAGE(:,2), &
                  PPS, PZENITH, KNLVLS_USE, HSNOWMETAMO, VIS_ICEALB     )
