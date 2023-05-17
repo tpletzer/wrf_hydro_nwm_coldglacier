@@ -4259,9 +4259,10 @@ DO JJ = 1,SIZE(PSNOW(:))
 
     PSNOWHMASS(JJ) = PSR(JJ) * ( XCI * ( ZSNOWTEMP(JJ)-XTT ) - XLMTT ) * PTSTEP
     !
-    PSNOWRHOF (JJ) = MAX( XRHOSMIN_ES, XSNOWFALL_A_SN + &
-                                       XSNOWFALL_B_SN * ( PTA(JJ)-XTT ) + &
-                                       XSNOWFALL_C_SN * MIN( PVMOD(JJ), SQRT(ZWIND_RHO(JJ) ) ) )
+    !PSNOWRHOF (JJ) = MAX( XRHOSMIN_ES, XSNOWFALL_A_SN + &
+    !                                   XSNOWFALL_B_SN * ( PTA(JJ)-XTT ) + &
+    !                                   XSNOWFALL_C_SN * MIN( PVMOD(JJ), SQRT(ZWIND_RHO(JJ) ) ) )
+    PSNOWRHOF (JJ) = 150. !set constant fresh snow rho kg/m3
     ZSNOWFALL (JJ) = PSR(JJ) * PTSTEP / PSNOWRHOF(JJ)    ! snowfall thickness (m)
     PSNOW     (JJ) = PSNOW(JJ) + ZSNOWFALL(JJ)
     PSNOWDZF  (JJ) = ZSNOWFALL(JJ)
