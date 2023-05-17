@@ -2154,9 +2154,9 @@ DO JJ=1, SIZE(PALBEDOSC)
     !
     !
     ! 2 On implement la fonction pour calculer la fraction de neige
-    FNEIGE(JJ) = MIN(1.,(HSNOW_TOT(JJ)/0.08)**0.33) !Lejeune 2005:0.07, 0.33
+    !FNEIGE(JJ) = MIN(1.,(HSNOW_TOT(JJ)/0.08)**0.33) !Lejeune 2005:0.07, 0.33
     !                                               !TAMARA: 0.08, 0.33
-    !
+    FNEIGE(JJ) = MIN(1.,1.) !w/o shallow snow
     !
     ! 3 On recalcul les PSPECTRALALBEDO avec cette fonction qui tient compte de
     ! la glace
